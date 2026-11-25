@@ -1,0 +1,517 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>The Last Dawn</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Barlow+Condensed:wght@500;700&family=Noto+Sans+SC:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--ash:#0c0e0d;--bone:#ddd6c4;--blood:#a8321f;--sod:#e6a23c;--moss:#6f8a5a;color-scheme:dark}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--ash);color:var(--bone);font-family:'Barlow Condensed','Noto Sans SC','PingFang SC','Microsoft YaHei','Arial Narrow',sans-serif;overflow:hidden}
+canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+[hidden]{display:none!important}
+.scr{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:center;padding:0 8vw;background:linear-gradient(90deg,rgba(6,8,7,.92),rgba(6,8,7,.35));z-index:5}
+.scr.mid{align-items:center;text-align:center;background:rgba(6,8,7,.82)}
+h1{font:400 clamp(44px,9vw,110px)/.9 'Special Elite','Noto Sans SC','PingFang SC','Microsoft YaHei','Courier New',monospace;margin:0 0 8px;color:var(--bone);text-shadow:0 0 30px rgba(168,50,31,.5)}
+h2{font:400 36px 'Special Elite','Noto Sans SC','PingFang SC','Microsoft YaHei','Courier New',monospace;margin:0 0 12px}
+#cl{display:grid;grid-template-columns:repeat(2,minmax(260px,1fr));gap:4px 20px;max-width:900px}#chap{overflow:auto;padding-top:4vh;justify-content:flex-start}.sub{color:var(--sod);font-size:20px;margin-bottom:28px;letter-spacing:.04em}
+button{font:700 22px 'Barlow Condensed','Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;background:none;border:0;border-left:3px solid transparent;color:var(--bone);text-align:left;padding:7px 14px;cursor:pointer;display:block;min-width:260px}
+button:hover,button:focus-visible{border-left-color:var(--blood);color:var(--sod);background:rgba(255,255,255,.05);outline:0}
+.scr.mid button{text-align:center;margin:3px auto}
+label{display:flex;gap:14px;align-items:center;margin:10px 0;font-size:20px}input[type=range]{accent-color:var(--blood);width:220px}
+.ctl{color:#9b9a8f;font-size:17px;max-width:560px;margin-top:22px;line-height:1.35}
+#hud{position:fixed;inset:0;pointer-events:none;z-index:2;font-size:20px}
+.bars{position:absolute;left:24px;bottom:24px;width:260px}
+.bar{height:9px;background:rgba(0,0,0,.55);margin:6px 0;border:1px solid rgba(255,255,255,.15)}.bar i{display:block;height:100%;width:100%}
+#ammo{position:absolute;right:24px;bottom:24px;text-align:right}#ammo b{font-size:44px;font-weight:700}
+#obj{position:absolute;left:24px;top:22px;max-width:380px;text-shadow:0 1px 4px #000}#obj small{color:#a9a89c;display:block}
+#res{position:absolute;left:24px;bottom:102px;color:#c9c3b1;font-size:18px}
+#mm{position:absolute;right:20px;top:20px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.45);border-radius:50%}
+#cross{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px;border:1px solid rgba(255,255,255,.7);border-radius:50%}
+#prompt{position:absolute;left:50%;top:58%;transform:translateX(-50%);color:var(--sod);font-size:24px}
+#toast{position:absolute;left:50%;bottom:130px;transform:translateX(-50%);text-align:center;text-shadow:0 1px 4px #000;font-size:22px}
+#note{position:absolute;top:17%;left:50%;transform:translateX(-50%);font:400 clamp(22px,3.4vw,40px) 'Special Elite','Noto Sans SC','PingFang SC','Microsoft YaHei','Courier New',monospace;color:var(--sod);text-shadow:0 2px 8px #000;opacity:0;transition:opacity .4s;text-align:center;white-space:nowrap}#mk{position:absolute;left:0;top:0;width:110px;text-align:center;color:var(--sod);font-size:17px;line-height:1.1;text-shadow:0 1px 3px #000}#bb{position:absolute;top:16px;left:50%;transform:translateX(-50%);width:380px;text-align:center}#card .sub{font-size:22px}#cd{font-size:22px;line-height:1.5;margin:14px 0 24px;color:#c9c3b1}#dmg{position:fixed;inset:0;box-shadow:inset 0 0 160px 40px var(--blood);opacity:0;z-index:1;pointer-events:none}
+#inv,#big{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(8,10,9,.88);border:1px solid rgba(255,255,255,.2);padding:18px 26px;font-size:20px;line-height:1.5}
+#clock{position:absolute;right:24px;top:230px;color:#9b9a8f;font-size:17px}
+#cine{position:fixed;inset:0;background:#000;z-index:6;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 12vw}
+#cine p{position:relative;z-index:1;text-shadow:0 2px 14px #000;font:400 clamp(20px,3vw,34px)/1.4 'Special Elite','Noto Sans SC','PingFang SC','Microsoft YaHei','Courier New',monospace;max-width:900px;transition:opacity 1s}
+#cine button{position:absolute;bottom:8vh;left:50%;transform:translateX(-50%);text-align:center}
+#dlg{position:fixed;left:50%;bottom:8vh;transform:translateX(-50%);width:min(760px,92vw);background:rgba(8,10,9,.94);border:1px solid rgba(255,255,255,.25);padding:18px 24px;z-index:7}
+#dlg b{color:var(--sod);font-size:22px}#dlg p{font-size:22px;margin:8px 0 14px;line-height:1.3}
+</style></head><body>
+<canvas id="c"></canvas><div id="dmg"></div>
+<div id="hud" hidden>
+ <div id="obj"></div><canvas id="mm" width="170" height="170"></canvas><div id="clock"></div>
+ <div id="cross"></div><div id="note"></div><div id="mk" hidden></div><div id="bb" hidden>Infected Leader<div class="bar"><i id="bbf" style="background:#b23a28"></i></div></div><div id="prompt"></div><div id="toast"></div>
+ <div id="res"></div>
+ <div class="bars"><div class="bar"><i id="bh" style="background:#b23a28"></i></div><div class="bar"><i id="bs" style="background:#d9c27a"></i></div><div class="bar"><i id="bf" style="background:#6f8a5a"></i></div></div>
+ <div id="ammo"><div id="wn"></div><b id="am"></b></div>
+ <div id="inv" hidden></div><div id="big" hidden><canvas id="bm" width="460" height="460"></canvas></div>
+</div>
+<div id="desk" class="scr mid" hidden style="z-index:30;background:#0b0d0c"><h1 id="dT" style="font-size:clamp(34px,8vw,80px)">THE LAST DAWN</h1><p id="dP" style="font-size:24px;max-width:560px;line-height:1.4">This game is desktop only. Please open it on a PC or laptop with a keyboard and mouse.</p></div>
+<div id="menu" class="scr"><h1 id="mT">THE LAST DAWN</h1><div class="sub" id="mS">Ten chapters. One city. No one is coming.</div>
+ <button id="bNew">New Game</button><button id="bCont">Continue</button><button id="bStory">Story Mode</button><button id="bChap">Chapters</button><button id="bSurv">Survival Mode</button><button id="bFree">Free Roam</button><button id="bSet">Settings</button><button id="bQuit">Quit Game</button><button id="bLang" style="position:fixed;top:18px;right:24px;min-width:0;z-index:7;font-size:18px">Language</button>
+ <div style="position:fixed;left:14px;bottom:10px;font-size:14px;color:#6c6f69;z-index:7">v13 · EN/中文 · gore</div>
+ <div class="ctl" id="mC">WASD move · Shift sprint · Ctrl crouch · Space jump · Mouse aim and fire · R reload · 1–6 weapons · Right mouse aim · F flashlight · E search or talk · Q eat · H heal · C craft bandage · V repair axe · Tab inventory · M map</div></div>
+<div id="set" class="scr" hidden><h2 id="sT">Settings</h2>
+ <label><span id="sL1">Mouse sensitivity</span> <input id="sSens" type="range" min=".3" max="2.5" step=".1" value="1"></label>
+ <label><span id="sL2">Volume</span> <input id="sVol" type="range" min="0" max="1" step=".05" value=".7"></label>
+ <label><input id="sRain" type="checkbox" checked> <span id="sL3">Rain and storms</span></label>
+ <label><input id="sGore" type="checkbox" checked> <span id="sL4">Blood and gore</span></label><br><button id="sLang">Language</button><button id="sBack">Back</button></div>
+<div id="chap" class="scr" hidden><h2 id="cT">Select Chapter</h2><div id="cl"></div><button id="cBack">Back</button></div>
+<div id="pause" class="scr mid" hidden><h2 id="pT">Paused</h2><p id="pP" style="max-width:520px;font-size:19px;color:#a9a89c;margin:0 0 14px">Click Resume to capture your mouse. If nothing happens, download the file and open it directly in Chrome or Edge.</p><button id="pRes">Resume</button><button id="pMenu">Main menu</button></div>
+<div id="end" class="scr mid" hidden><h2 id="et"></h2><p id="ex" style="max-width:640px;font-size:22px;line-height:1.35"></p><button id="eEpi" hidden>Continue — Chapter 7 Epilogue</button><button id="eRetry" hidden>Retry chapter</button><button id="eMenu">Main menu</button></div>
+<div id="card" class="scr mid" hidden style="z-index:8"><div class="sub" id="cs"></div><h1 id="ct" style="font-size:clamp(30px,5.5vw,70px)"></h1><div id="cd"></div><button id="cb">Begin</button></div>
+<div id="cine" hidden><canvas id="ec" style="display:none;position:absolute;inset:0;width:100%;height:100%"></canvas><p id="cp"></p><button id="cGo" hidden>Open your eyes</button></div>
+<div id="dlg" hidden><b id="dw"></b><p id="dt"></p><div id="do"></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(()=>{
+const $=i=>document.getElementById(i),R=Math.random,rr=(a,b)=>a+R()*(b-a),pk=a=>a[R()*a.length|0],cl=(v,a,b)=>Math.max(a,Math.min(b,v));
+const S={mode:'',run:0,talk:0,sens:1,vol:.7,rain:1,map:0,inv:0};
+let SV={u:1,s:0,g:0,t:0,r:0,p:0};try{Object.assign(SV,JSON.parse(localStorage.getItem('lastdawn2')||'{}'))}catch(e){}
+let LANG='en';try{LANG=localStorage.getItem('lastdawn_lang')||((navigator.language||'').toLowerCase().startsWith('zh')?'zh':'en')}catch(e){}
+const ZH={"THE LAST DAWN": "最后的黎明", "Ten chapters. One city. No one is coming.": "十个章节。一座城市。没有人会来救你。", "New Game": "新游戏", "Continue": "继续", "Story Mode": "剧情模式", "Chapters": "章节", "Survival Mode": "生存模式", "Free Roam": "自由探索", "Settings": "设置", "Quit Game": "退出游戏", "WASD move · Shift sprint · Ctrl crouch · Space jump · Mouse aim and fire · R reload · 1–6 weapons · Right mouse aim · F flashlight · E search or talk · Q eat · H heal · C craft bandage · V repair axe · Tab inventory · M map": "WASD 移动 · Shift 冲刺 · Ctrl 蹲下 · 空格 跳跃 · 鼠标瞄准射击 · R 换弹 · 1–6 切换武器 · 右键瞄准 · F 手电筒 · E 搜索/交谈 · Q 进食 · H 治疗 · C 制作绷带 · V 修理斧头 · Tab 背包 · M 地图", "Mouse sensitivity": "鼠标灵敏度", "Volume": "音量", "Rain and storms": "雨与风暴", "Blood and gore": "血腥与肢解", "Back": "返回", "Select Chapter": "选择章节", "Paused": "已暂停", "Click Resume to capture your mouse. If nothing happens, download the file and open it directly in Chrome or Edge.": "点击“继续游戏”以锁定鼠标。若没有反应，请下载文件并直接用 Chrome 或 Edge 打开。", "Resume": "继续游戏", "Main menu": "主菜单", "Retry chapter": "重试本章", "Continue — Chapter 7 Epilogue": "继续——第七章 尾声", "Continue — Chapter 8": "继续——第八章", "Open your eyes": "睁开双眼", "Begin": "开始", "This game is desktop only. Please open it on a PC or laptop with a keyboard and mouse.": "本游戏仅支持电脑。请在配有键盘和鼠标的电脑或笔记本上打开。", "Fire Axe": "消防斧", "Pistol": "手枪", "Shotgun": "霰弹枪", "Rifle": "步枪", "Marksman Rifle": "精确射手步枪", "SMG": "冲锋枪", "Assault Rifle": "突击步枪", "St. Anne’s Hospital": "圣安妮医院", "Police Station": "警察局", "Eastgate Mall": "东门购物中心", "Lincoln School": "林肯学校", "Gas Station": "加油站", "Army Checkpoint": "军方检查站", "Helix Research": "螺旋研究所", "Ward log: “They stopped bringing patients. The generators still hum.”": "病房日志：“他们不再送病人来了。发电机仍在嗡嗡作响。”", "Evidence board: every photo is the same face. Yours.": "证据板：每张照片都是同一张脸。你的脸。", "Barricade note: “Mara has the radio. Trust her or don’t.”": "路障便条：“玛拉有电台。信不信她，随你。”", "Chalkboard: “THEY COME AT NIGHT. WE LEFT THE LIGHTS ON.”": "黑板：“他们夜里来。我们留着灯。”", "Receipt tape: someone paid for fuel in a world with no cashiers.": "收据：在一个没有收银员的世界里，竟有人付了油钱。", "Orders: “Contain. Do not evacuate. Do not tell them.”": "命令：“控制。不得撤离。不得告知他们。”", "Door log: SUBJECT 0 — ST. ANNE’S — ESCAPED.": "门禁记录：零号实验体——圣安妮——已逃脱。", "Signal tower": "信号塔", "Hospital exit": "医院出口", "Convoy": "车队", "Underground lab entrance": "地下实验室入口", "Surface exit": "地面出口", "Extraction point": "撤离点", "Old road north": "北方旧路", "Supplies": "物资", "Research sample": "研究样本", "Medical pack": "医疗包", "Access key": "门禁钥匙", "Transmitter": "发射器", "Underground exit": "地下出口", "Infected leader": "感染者首领", "Infected Leader": "感染者首领", "Dr. Hale": "黑尔博士", "Mara": "玛拉", "Helix — Surface Exit": "螺旋 — 地面出口", "Helix Black Site": "螺旋黑色据点", "The Quiet City": "寂静之城", "Collect 5 supplies": "收集 5 份物资", "Reach the signal location": "抵达信号所在地", "Hospital Nightmare": "医院噩梦", "Find 3 medical packs inside the abandoned hospital": "在废弃医院内找到 3 个医疗包", "Reach the hospital exit": "抵达医院出口", "The Last Convoy": "最后的车队", "Defend the convoy for 45 seconds": "守卫车队 45 秒", "Survive waves of zombies": "撑过一波波僵尸", "Dead Zone": "死亡地带", "Find and activate 3 radio transmitters around the city": "在城中找到并启动 3 台无线电发射器", "Underground": "地下", "Find the access key": "找到门禁钥匙", "Reach the underground exit": "抵达地下出口", "Final Stand": "最后一战", "Defeat the infected leader": "击败感染者首领", "Reach the extraction point": "抵达撤离点", "Dawn Patrol": "黎明巡逻", "The infected have gone still, but the city is not yet safe.": "感染者已经静止，但这座城市仍不安全。", "Survivors are listening for a signal. Give them one.": "幸存者们正在等待信号。给他们一个吧。", "Activate 3 radio transmitters to broadcast the cure": "启动 3 台无线电发射器，广播解药消息", "Reach the signal tower and send the all-clear": "抵达信号塔并发出安全信号", "Fugitives": "逃亡者", "The fire is visible for miles. So is your trail.": "大火数英里外都能看见，你的行踪也是。", "The horde is drawn to the smoke, and so are Helix’s hunters.": "尸潮被浓烟吸引而来，螺旋的猎手也是。", "Survive 90 seconds of the pursuit": "在追击中撑过 90 秒", "Escape north to the old road": "向北逃往旧路", "The Sun Convoy": "太阳车队", "Mara’s convoy needs supplies before it can carry the cure.": "玛拉的车队需要补给才能运送解药。", "Gather what you can, then hold the line while they load.": "尽量收集物资，然后在他们装车时守住阵线。", "Collect 5 supplies for the six cities": "为六座城市收集 5 份物资", "Payback": "清算", "Mara sold the cure. The buyer moves it tonight.": "玛拉出卖了解药。买家今晚就会转运。", "Find the signal, then the enforcer guarding the shipment.": "找到信号，然后找出看守货物的打手。", "Track the buyer’s signal to the tower": "追踪买家的信号至信号塔", "Defeat the enforcer guarding the cure": "击败看守解药的打手", "Black Site": "黑色据点", "Helix’s servers kept running after the fall. Someone is still sending orders.": "螺旋的服务器在城市沦陷后仍在运转。有人还在下达命令。", "The signal leads to a hidden underground lab in the forest.": "信号指向森林中一座隐蔽的地下实验室。", "Patient Zero Files": "零号病人档案", "The black site held a partial copy of Helix’s records, but they are encrypted.": "黑色据点里存有螺旋记录的部分副本，但已被加密。", "Recover the research samples that can unlock them, then hold out while they upload.": "找回能解锁它们的研究样本，然后在上传期间坚守。", "Recover 3 research samples from the hospital": "从医院找回 3 份研究样本", "Hold out for 60 seconds while the records upload": "在记录上传期间坚守 60 秒", "Read the decrypted file at the signal tower": "在信号塔读取解密后的档案", "Every order is signed “H.”": "每一道命令都署名“H”。", "The Architect": "幕后主谋", "Every thread leads to Helix Research.": "所有线索都指向螺旋研究所。", "Whoever built this plague is waiting inside.": "制造这场瘟疫的人正在里面等着。", "Fight your way into Helix Research: kill 10 infected": "杀入螺旋研究所：击杀 10 名感染者", "Confront the man behind the outbreak": "直面疫情背后的那个人", "Defeat Dr. Hale": "击败黑尔博士", "The cure you gave the world is still working, but someone is still sending orders.": "你给世界的解药仍在起效，但仍有人在下达命令。", "Your daughter sleeps beside you. The signal does not let you rest.": "女儿睡在你身旁。信号却不让你安歇。", "Mara’s convoy is rolling, and she is the one who intercepted the signal.": "玛拉的车队正在行进，截获信号的正是她。", "You swore never to trust a signal again. This one you cannot ignore.": "你发誓再也不信任任何信号。但这一个，你无法忽视。", "“Why would you do this?”": "“你为什么要这么做？”", "“It ends here.”": "“到此为止。”", "“Where is my daughter?”": "“我女儿在哪？”", "“Then I’ll stop you.”": "“那我就阻止你。”", "“You killed everyone.”": "“你杀死了所有人。”", "“I won’t.”": "“我不会让开。”", "The signal reaches every survivor still listening. The city rebuilds around the sound of voices, not screams.": "信号传到了每一位仍在倾听的幸存者耳中。城市在人声而非尖叫中重建。", "You and your daughter reach the old road north. Behind you the smoke thins. Ahead, quiet, for now.": "你和女儿抵达了北方的旧路。身后的浓烟渐渐稀薄，前方，暂时是一片宁静。", "The convoy rolls out at dawn, six cities counting on you. For once, the road is not empty.": "车队在黎明出发，六座城市都指望着你。这一次，道路不再空荡。", "The enforcer falls and the cure is yours again. Mara’s voice on the radio goes silent, and you let it.": "打手倒下，解药重回你手。电台里玛拉的声音沉寂了，你任由它沉寂。", "Epilogue complete": "尾声完成", "Epilogue": "尾声", "Objectives": "任务目标", "After the ending": "结局之后", "Reward": "奖励", "Chapter 7 · Epilogue": "第七章 · 尾声", "Helix underground lab — find the exit": "螺旋地下实验室——找到出口", "The lab lights flicker. Use your flashlight (F).": "实验室的灯光闪烁不定。请使用手电筒（F）。", "Return to the convoy!": "返回车队！", "Convoy lost! Defense restarted": "车队被毁！防御重新开始", "The horde is closing in!": "尸潮正在逼近！", "Dr. Hale injects the serum!": "黑尔博士注射了血清！", "The infected leader awakens!": "感染者首领苏醒了！", "[E] Take research sample": "[E] 拾取研究样本", "[E] Take medical pack": "[E] 拾取医疗包", "[E] Take access key": "[E] 拾取门禁钥匙", "Access key acquired": "已获得门禁钥匙", "[E] Activate transmitter": "[E] 启动发射器", "[E] Enter the underground lab": "[E] 进入地下实验室", "Locked — find the access key": "已锁定——请先找到门禁钥匙", "You need the access key first": "你需要先找到门禁钥匙", "The axe is broken. Repair it with scrap (V)": "斧头坏了。用废料修理（V）", "Out of ammo": "弹药耗尽", "No food": "没有食物", "Ate canned food": "吃了罐头食品", "No medical supplies": "没有医疗用品", "Need 2 cloth": "需要 2 块布料", "Crafted a bandage": "制作了一条绷带", "Need 2 scrap": "需要 2 份废料", "Axe repaired": "斧头已修好", "Pistol and ammo": "手枪和弹药", "Side mission done: fuel siphoned, trade ammo gained": "支线完成：抽取了燃料，获得交易弹药", "Fuel cans. Side mission: siphon the fuel.": "油桶。支线任务：抽取燃料。", "Survive the waves": "撑过一波波攻击", "Free roam: the city is yours": "自由探索：这座城市任你探索", "[E] Search": "[E] 搜索", "Reloading": "换弹中", "Night": "夜晚", "Dusk": "黄昏", "Day": "白天", "You don’t have that weapon yet": "你还没有那把武器", "Signal lost": "信号中断", "Your progress is saved. You can close this tab.": "进度已保存。你可以关闭此标签页。", "Endings (spoilers)": "结局（含剧透）", "YOU DIED": "你死了", "Kills": "击杀", "Reached wave": "到达波次", "Inventory": "背包", "durability": "耐久", "loaded": "已装填", "spare": "备用", "Food": "食物", "Medkits": "医疗包", "Bandages": "绷带", "Cloth": "布料", "Scrap": "废料", "Free roam": "自由探索", "Wave": "波次", "Infected left": "剩余感染者", "cloth": "布料", "scrap": "废料", "food": "食物", "medkit": "医疗包", "s": "秒", "convoy": "车队", "cleared": "已清除", "unlocked": "已解锁", "C craft bandage (2 cloth) · V repair axe (2 scrap)": "C 制作绷带（2 布料）· V 修理斧头（2 废料）", "Give her a medkit (costs 1)": "给她一个医疗包（消耗 1 个）", "Mara trusts you": "玛拉信任你了", "Take her radio by force": "强行夺走她的电台", "Radio taken. Mara won’t forget.": "电台已夺走。玛拉不会忘记的。", "Ask about your family": "询问你的家人", "Give your blood. End this.": "献出你的血。结束这一切。", "Burn the lab and leave with your daughter.": "烧毁实验室，带着女儿离开。", "Radio Mara to carry the cure out.": "呼叫玛拉把解药带出去。", "Ending: The Last Dawn": "结局：最后的黎明", "Ending: Ashes": "结局：灰烬", "Ending: Together": "结局：并肩同行", "Ending: Betrayal": "结局：背叛", "Final Chapter: The Architect": "终章：幕后主谋", "The city fell.": "城市沦陷了。", "You wake up in St. Anne’s. The machines are silent. The corridor is not.": "你在圣安妮医院醒来。机器一片寂静，走廊却不然。", "Somewhere out there, your family is waiting. Or what is left of them.": "在远方的某处，你的家人在等你。或者说，是他们所剩下的部分。", "Find them. Find out what you are.": "找到他们。弄清你究竟是什么。", "You lie on the table while the last of your blood runs into the lines.": "你躺在手术台上，最后一滴血流入管线。", "Hale’s voice is quiet. “It’s working.”": "黑尔的声音很轻。“起作用了。”", "Outside, the infected stop. One by one, they simply stop.": "外面，感染者停下了。一个接一个，就这样停下了。", "Your daughter’s hand is in yours. She is crying, and she is alive.": "女儿的手在你手中。她在哭，但她还活着。", "The sun clears the ruined skyline. For the first time in months, nothing screams.": "太阳越过破败的天际线。数月来第一次，再没有任何尖叫。", "The charges go off one after another. The lab folds in on itself.": "炸药接连引爆。实验室向内坍塌。", "You carry your daughter through the smoke, her face pressed to your shoulder.": "你抱着女儿穿过浓烟，她的脸贴在你的肩上。", "Behind you, years of Helix research burn.": "身后，螺旋多年的研究付之一炬。", "You walk north with nothing but each other, and a secret that is yours alone.": "你们向北而行，除了彼此一无所有，只剩一个只属于你的秘密。", "Somewhere far away, the dead keep walking.": "在遥远的某处，死者仍在游荡。", "ASHES": "灰烬", "The helicopter lifts off as the radio crackles. “Mara. It’s me.”": "直升机升空，电台里传来沙沙声。“玛拉，是我。”", "“I see you. Hold position.” Headlights break over the ridge.": "“我看到你了。原地待命。”车灯划破山脊。", "A convoy of trucks, each painted with a hand-drawn sun.": "一队卡车，每辆都漆着手绘的太阳。", "Mara throws you a blanket. “Told you I’d come.”": "玛拉扔给你一条毯子。“说过我会来的。”", "The cure goes out to six cities, carried by people you chose to trust.": "解药被送往六座城市，由你选择信任的人带去。", "TOGETHER": "并肩同行", "The radio hisses. “Mara? Mara, do you read me?”": "电台嘶嘶作响。“玛拉？玛拉，听到请回答？”", "“I read you,” she says. “I’m sorry. They’re paying for the cure.”": "“听到了，”她说。“对不起。他们在为解药出价。”", "No convoy. No answer. Only static, and a helicopter that never lands.": "没有车队，没有回应。只有杂音，和一架永远不会降落的直升机。", "The soldiers lower their rifles at you. Hale looks away.": "士兵们把枪口对准了你。黑尔移开了视线。", "You were right about the world. You were wrong about her.": "你对这个世界的判断没错，却看错了她。", "BETRAYAL": "背叛", "Hale collapses among the humming machines. “Every number,” he whispers, “was always you.”": "黑尔倒在嗡嗡作响的机器之间。“每一个数据，”他低声说，“都是你。”", "In his console you find the master shutdown, hidden behind his own cure.": "在他的控制台里，你找到了总关闭指令，藏在他自己的解药背后。", "One signal, sent from the right tower, will silence every infected cell. Your hands shake as you send it.": "从正确的信号塔发出一道信号，就能让每一个感染细胞沉寂。你颤抖着按下发送。", "Across the ruined city, the infected slump and fall still. Mara’s radio crackles: “Is it over?”": "整座废墟之城里，感染者纷纷倒下，归于寂静。玛拉的电台响起：“结束了吗？”", "The doctor made the dark. You ended it.": "医生制造了黑暗。是你终结了它。", "THE ARCHITECT": "幕后主谋", "You walked out of St. Anne’s? Nobody walks out of there. Whatever you are, you’re the first thing in weeks that hasn’t tried to eat me. What do you want?": "你从圣安妮医院走出来的？没人能从那儿活着出来。不管你是什么，你是几周来第一个没想吃掉我的东西。你想要什么？", "Helix Research, east of the checkpoint. They took people in trucks. If your family is alive, they’re there. Get past the soldiers first.": "螺旋研究所，在检查站以东。他们用卡车运走了人。如果你的家人还活着，就在那里。先过了士兵这一关。", "The helicopter is inbound. Before you board: you were Subject Zero, the first and only immune. Your blood can make the cure, but it takes all of it. Or you can burn the research and disappear with your family.": "直升机即将抵达。登机之前：你就是零号实验体，第一个也是唯一的免疫者。你的血能制成解药，但需要全部的血。或者，你可以烧毁研究，带着家人消失。", "So you followed every breadcrumb. Yes. The outbreak was mine. I built the virus, I released it at St. Anne’s, and you were the control subject who was never supposed to wake up.": "原来你一路循着线索找来了。没错，这场疫情是我一手造成的。病毒是我制造的，我在圣安妮医院释放了它，而你是那个本不该醒来的对照实验体。", "Because no one funds a cure for a world that is not dying. I needed the dead to make the living afraid enough to pay. The cure was always real. The plague was the price.": "因为没人会为一个没在垂死的世界资助解药。我需要死者让活人恐惧到愿意掏钱。解药一直是真的。瘟疫，就是代价。", "Safe, in the next room. Whether she stays that way depends on you.": "很安全，就在隔壁。她能否一直安全，取决于你。", "Everyone I needed to. Now stand aside, or become the final subject.": "我需要杀的人，一个不留。现在让开，否则你就成为最后一个实验体。", "You give everything. The cure spreads from the lab by radio and by hand. Your daughter watches the first sunrise without a single groan in the distance.": "你付出了一切。解药通过电台和人手传遍各地。你的女儿看着第一缕朝阳，耳边再没有一声呻吟。", "The lab burns for three days. You and your daughter walk north with the only secret left alive: you. Somewhere, the dead keep walking.": "实验室燃烧了三天。你和女儿向北而行，带着唯一仍然活着的秘密：你自己。在某个远方，死者仍在游荡。", "Mara arrives with a convoy. The cure is split, copied and carried to six cities. You share the dawn with people you chose to trust.": "玛拉带着车队赶到。解药被分装、复制，运往六座城市。你与那些你选择信任的人共享黎明。", "Mara’s voice on the radio is cold. The convoy never comes, and the cure goes to the highest bidder. You were right about the world, and wrong about her.": "玛拉在电台里的声音冰冷。车队始终没有出现，解药落入了出价最高的人手中。你对世界的判断没错，却看错了她。", "Dr. Hale engineered the outbreak to force the world to buy his cure. With his shutdown signal sent, the infected finally rest, and the city can begin to heal.": "黑尔博士制造疫情，只为逼迫世界买下他的解药。随着他的关闭信号发出，感染者终于安息，这座城市可以开始愈合。"};
+const RXS=[[/^Weapon unlocked: (.+)$/,m=>'已解锁武器：'+TR(m[1])],[/^Chapter (\d+): (.+)$/,m=>'第'+m[1]+'章：'+TR(m[2])],[/^Wave (\d+) incoming!$/,m=>'第'+m[1]+'波来袭！'],[/^Wave (\d+) cleared\. Supply crates dropped nearby\.$/,m=>'第'+m[1]+'波已清除。附近投放了补给箱。'],[/^Wave (\d+)$/,m=>'第'+m[1]+'波'],[/^✔ (.+)$/,m=>'✔ '+TR(m[1])],[/^CHAPTER (\d+) COMPLETE$/,m=>'第'+m[1]+'章完成'],[/^Found: (.+)$/,m=>'获得：'+m[1].split(', ').map(TR).join('、')],[/^Found (.+)$/,m=>'发现：'+TR(m[1])],[/^(Medical pack|Research sample) (\d+)\/3$/,m=>TR(m[1])+' '+m[2]+'/3'],[/^Transmitter (\d+)\/3 online — the signal draws the infected!$/,m=>'发射器 '+m[1]+'/3 已上线——信号引来了感染者！'],[/^(.+) ammo$/,m=>TR(m[1])+'弹药']];
+function TR(s){if(LANG!='zh'||s==null||s==='')return s;if(ZH[s])return ZH[s];for(const[r,f]of RXS){const m=String(s).match(r);if(m)return f(m)}return s}
+const STAT={mT:'THE LAST DAWN',mS:'Ten chapters. One city. No one is coming.',mC:'WASD move · Shift sprint · Ctrl crouch · Space jump · Mouse aim and fire · R reload · 1–6 weapons · Right mouse aim · F flashlight · E search or talk · Q eat · H heal · C craft bandage · V repair axe · Tab inventory · M map',bNew:'New Game',bCont:'Continue',bStory:'Story Mode',bChap:'Chapters',bSurv:'Survival Mode',bFree:'Free Roam',bSet:'Settings',bQuit:'Quit Game',sT:'Settings',sL1:'Mouse sensitivity',sL2:'Volume',sL3:'Rain and storms',sL4:'Blood and gore',sBack:'Back',cT:'Select Chapter',cBack:'Back',pT:'Paused',pP:'Click Resume to capture your mouse. If nothing happens, download the file and open it directly in Chrome or Edge.',pRes:'Resume',pMenu:'Main menu',eMenu:'Main menu',eRetry:'Retry chapter',cGo:'Open your eyes',dT:'THE LAST DAWN',dP:'This game is desktop only. Please open it on a PC or laptop with a keyboard and mouse.'};
+function applyLang(){document.documentElement.lang=LANG=='zh'?'zh-CN':'en';for(const k in STAT){const e=$(k);if(e)e.textContent=TR(STAT[k])}const lb=LANG=='zh'?'语言：中文 · English':'Language: English · 中文';$('bLang').textContent=lb;$('sLang').textContent=lb;buildChap();relabel();try{localStorage.setItem('lastdawn_lang',LANG)}catch(e){}}
+const LBL=[];function drawLbl(o){const g=o.c.getContext('2d');g.clearRect(0,0,512,96);g.font='46px "Noto Sans SC","Courier New",monospace';g.fillStyle='#e6a23c';g.textAlign='center';g.fillText(TR(o.t),256,60);o.tx.needsUpdate=true}
+function relabel(){LBL.forEach(drawLbl)}
+
+const W=[{n:'Fire Axe',m:1,dmg:45,rate:.75},
+{n:'Pistol',dmg:30,rate:.26,mag:12,sp:.004,bs:.03,bl:.25,bd:3,pel:1,nz:45,rp:.011,ry:.004,rt:1.5,t:'pistol'},
+{n:'Shotgun',dmg:15,rate:.95,mag:6,sp:.045,bs:.01,bl:.1,bd:2,pel:8,nz:70,rp:.05,ry:.012,rt:.55,sh:1,pump:1,t:'sg'},
+{n:'Rifle',dmg:48,rate:.13,mag:20,sp:.003,bs:.05,bl:.12,bd:2.5,pel:1,nz:75,auto:1,rp:.012,ry:.006,rt:2,t:'rifle'},
+{n:'Marksman Rifle',dmg:115,rate:1.15,mag:5,sp:.0008,bs:.02,bl:.5,bd:1.5,pel:1,nz:90,rp:.045,ry:.006,rt:2.4,pump:1,t:'mk'},
+{n:'SMG',dmg:17,rate:.075,mag:30,sp:.01,bs:.07,bl:.07,bd:1.8,pel:1,nz:62,auto:1,rp:.007,ry:.006,rt:1.8,t:'smg'}];
+const TY={walker:{hp:70,sp:1.4,c:0x5d6d4b,s:1,dm:8,w:6},runner:{hp:45,sp:4.8,c:0x84503c,s:.95,dm:7,w:3},stalker:{hp:55,sp:5.2,c:0x2c3340,s:1,dm:15,w:2},brute:{hp:320,sp:2.3,c:0x70403c,s:1.55,dm:32,w:.4},screamer:{hp:50,sp:2.6,c:0x9a9a44,s:1,dm:6,w:.6},leader:{hp:900,sp:2.9,c:0x5a2a2a,s:1.9,dm:38,w:0}};
+const LM={hospital:[0,0,'St. Anne’s Hospital',0xb9c4be,'Ward log: “They stopped bringing patients. The generators still hum.”'],police:[2,-2,'Police Station',0x3d5a80,'Evidence board: every photo is the same face. Yours.'],mall:[-2,2,'Eastgate Mall',0x8a6f9a,'Barricade note: “Mara has the radio. Trust her or don’t.”'],school:[-3,-1,'Lincoln School',0xa8864a,'Chalkboard: “THEY COME AT NIGHT. WE LEFT THE LIGHTS ON.”'],gas:[3,1,'Gas Station',0xb5482a,'Receipt tape: someone paid for fuel in a world with no cashiers.'],check:[1,3,'Army Checkpoint',0x4a5a3a,'Orders: “Contain. Do not evacuate. Do not tell them.”'],lab:[3,-3,'Helix Research',0xdde6ec,'Door log: SUBJECT 0 — ST. ANNE’S — ESCAPED.']};
+for(const k in LM){LM[k].x=LM[k][0]*36;LM[k].z=LM[k][1]*36}
+let SIG,ROT,IT=[],TXS=[],UG=0,CHP=100,DN=[],WV=[];
+const PT={signal:{x:-54,z:-54,n:'Signal tower'},hexit:{x:0,z:14,n:'Hospital exit'},convoy:{x:54,z:18,n:'Convoy'},ugin:{x:-138,z:20,n:'Underground lab entrance'},ugout:{x:138,z:-30,n:'Surface exit'},extract:{x:126,z:126,n:'Extraction point'},north:{x:-18,z:-126,n:'Old road north'}};
+const SPW=[[0,17,0],[0,-4,Math.PI],[42,18,-Math.PI/2],[54,32,0],[LM.police.x,LM.police.z+16,0],[54,-46,0],[0,17,0],[LM.lab.x,LM.lab.z+16,0],[42,18,-Math.PI/2],[126,112,0],[LM.police.x,LM.police.z+16,0],[0,17,0],[LM.lab.x,LM.lab.z+20,0]];
+const gw=i=>{P.own[i]=1;P.res[i]+=[0,0,18,40,10,60][i];P.mag[i]=W[i].mag;if(i==5)SV.s=1;if(i==2)SV.g=1;sv();setTimeout(()=>toast('Weapon unlocked: '+W[i].n),1500)};
+const CH=[
+{e:'The Quiet City',o:[{t:'Collect 5 supplies',k:'loot',n:5},{t:'Reach the signal location',k:'go',p:'signal',r:4}]},
+{e:'Hospital Nightmare',o:[{t:'Find 3 medical packs inside the abandoned hospital',k:'item',it:'med',n:3},{t:'Reach the hospital exit',k:'go',p:'hexit',r:3.5}]},
+{e:'The Last Convoy',par:1,rw:5,o:[{t:'Defend the convoy for 45 seconds',k:'defend'},{t:'Survive waves of zombies',k:'waves'}]},
+{e:'Dead Zone',o:[{t:'Find and activate 3 radio transmitters around the city',k:'radio',n:3}]},
+{e:'Underground',o:[{t:'Find the access key',k:'item',it:'key',n:1},{t:'Reach the underground exit',k:'ug'}]},
+{e:'Final Stand',rw:2,o:[{t:'Defeat the infected leader',k:'boss'},{t:'Reach the extraction point',k:'go',p:'extract',r:5}]},
+{e:'Dawn Patrol',ep:1,intro:['The infected have gone still, but the city is not yet safe.','Survivors are listening for a signal. Give them one.'],o:[{t:'Activate 3 radio transmitters to broadcast the cure',k:'radio',n:3},{t:'Reach the signal tower and send the all-clear',k:'go',p:'signal',r:4}]},
+{e:'Fugitives',ep:1,intro:['The fire is visible for miles. So is your trail.','The horde is drawn to the smoke, and so are Helix’s hunters.'],o:[{t:'Survive 90 seconds of the pursuit',k:'surv',n:90},{t:'Escape north to the old road',k:'go',p:'north',r:5}]},
+{e:'The Sun Convoy',ep:1,intro:['Mara’s convoy needs supplies before it can carry the cure.','Gather what you can, then hold the line while they load.'],o:[{t:'Collect 5 supplies for the six cities',k:'loot',n:5},{t:'Defend the convoy for 45 seconds',k:'defend'},{t:'Survive waves of zombies',k:'waves'}]},
+{e:'Payback',ep:1,intro:['Mara sold the cure. The buyer moves it tonight.','Find the signal, then the enforcer guarding the shipment.'],o:[{t:'Track the buyer’s signal to the tower',k:'go',p:'signal',r:4},{t:'Defeat the enforcer guarding the cure',k:'boss'}]},
+{e:'Black Site',num:8,intro:['Helix’s servers kept running after the fall. Someone is still sending orders.','The signal leads to a hidden underground lab in the forest.'],o:[{t:'Find the access key',k:'item',it:'key',n:1},{t:'Reach the underground exit',k:'ug'}]},
+{e:'Patient Zero Files',num:9,intro:['The black site held a partial copy of Helix’s records, but they are encrypted.','Recover the research samples that can unlock them, then hold out while they upload.'],o:[{t:'Recover 3 research samples from the hospital',k:'item',it:'med',n:3},{t:'Hold out for 60 seconds while the records upload',k:'surv',n:60},{t:'Read the decrypted file at the signal tower',k:'go',p:'signal',r:4}],on:()=>setTimeout(()=>note('Every order is signed “H.”'),900)},
+{e:'The Architect',num:10,intro:['Every thread leads to Helix Research.','Whoever built this plague is waiting inside.'],o:[{t:'Fight your way into Helix Research: kill 10 infected',k:'kill',n:10,at:'lab'},{t:'Confront the man behind the outbreak',k:'talk'},{t:'Defeat Dr. Hale',k:'boss',at:'lab',bn:'Dr. Hale'}]}];
+const EL=['The cure you gave the world is still working, but someone is still sending orders.','Your daughter sleeps beside you. The signal does not let you rest.','Mara’s convoy is rolling, and she is the one who intercepted the signal.','You swore never to trust a signal again. This one you cannot ignore.'];
+function hale2(){dlg('Dr. Hale','So you followed every breadcrumb. Yes. The outbreak was mine. I built the virus, I released it at St. Anne’s, and you were the control subject who was never supposed to wake up.',[['“Why would you do this?”',()=>dlg('Dr. Hale','Because no one funds a cure for a world that is not dying. I needed the dead to make the living afraid enough to pay. The cure was always real. The plague was the price.',[['“It ends here.”',()=>{P.tk=2}],['“Where is my daughter?”',()=>dlg('Dr. Hale','Safe, in the next room. Whether she stays that way depends on you.',[['“Then I’ll stop you.”',()=>{P.tk=2}]])]])],['“You killed everyone.”',()=>dlg('Dr. Hale','Everyone I needed to. Now stand aside, or become the final subject.',[['“I won’t.”',()=>{P.tk=2}]])]])}
+function finale(){document.exitPointerLock();$('hud').hidden=1;S.run=0;SV.fin=1;sv();endScene(4)}
+const EPE=['The signal reaches every survivor still listening. The city rebuilds around the sound of voices, not screams.','You and your daughter reach the old road north. Behind you the smoke thins. Ahead, quiet, for now.','The convoy rolls out at dawn, six cities counting on you. For once, the road is not empty.','The enforcer falls and the cure is yours again. Mara’s voice on the radio goes silent, and you let it.'];
+function epEnd(){snap();S.run=0;S.talk=1;document.exitPointerLock();$('hud').hidden=1;$('dlg').hidden=1;$('et').textContent=TR('Epilogue complete');$('ex').textContent=TR(EPE[ch-6]);$('eRetry').hidden=1;SV.m=Math.max(SV.m||0,1);sv();$('eEpi').textContent=TR('Continue — Chapter 8');$('eEpi').onclick=()=>start('story',0,10,2);$('eEpi').hidden=0;$('end').hidden=0}
+const sv=()=>{try{localStorage.setItem('lastdawn2',JSON.stringify(SV))}catch(e){}};
+const cnum=c=>c.num||(c.ep?7:CH.indexOf(c)+1);
+let SNAP=null;
+function snap(){const o={};['x','z','yaw','pitch','hp','st','food','wep','own','mag','res','inv','dur','kills','loot','trust','radio'].forEach(q=>o[q]=P[q]);SNAP=JSON.stringify(o)}
+function restoreSnap(){if(!SNAP)return;const o=JSON.parse(SNAP);for(const k in o){if(k=='own'||k=='mag'||k=='res'){for(let i=0;i<6;i++)P[k][i]=k=='own'?(P[k][i]||o[k][i]||0):Math.max(P[k][i]||0,o[k][i]||0)}else P[k]=o[k]}if(!P.own[P.wep])P.wep=1}
+function note(t){const e=$('note');e.textContent=TR(t);e.style.opacity=1;clearTimeout(note.h);note.h=setTimeout(()=>e.style.opacity=0,2800)}
+function card(t,sub,lines,btn,f){S.talk=1;document.exitPointerLock();$('cine').hidden=1;$('hud').hidden=1;$('cs').textContent=TR(sub);$('ct').textContent=t;$('cd').innerHTML=lines.map(l=>l.startsWith('• ')?'• '+TR(l.slice(2)):l.startsWith('Reward: ')?TR('Reward')+(LANG=='zh'?'：':': ')+TR(l.slice(8)):TR(l)).join('<br>');$('cb').textContent=TR(btn);$('cb').onclick=()=>{$('card').hidden=1;f()};$('card').hidden=0}
+function inH(n){const H=LM.hospital;for(let i=0;i<n;i++){const x=H.x+rr(-8,8),z=H.z+rr(-8,6);if(!hit(x,z,.8)&&Math.hypot(x-P.x,z-P.z)>5)spawnZ(R()<.6?'walker':pk(['runner','stalker']),x,z)}}
+function pack2(p,n){for(let i=0;i<n;i++){const a=rr(0,6.28),d=rr(20,32),x=p.x+Math.cos(a)*d,z=p.z+Math.sin(a)*d;if(!hit(x,z,1))spawnZ(pickT(),x,z)}}
+function beginCh(keep){clearGore();const c=CH[ch],sp=SPW[ch];zs.forEach(z=>sc.remove(z.g));zs=[];UG=0;boss=null;DN=[];P.l0=P.loot;P.it={med:0,key:0};P.rd=0;P.dt=0;P.ws=0;P.mr=0;P.wn=0;P.sv=0;P.svt=3;P.k0=P.kills;P.kl=0;P.tk=0;CHP=100;WV=[];
+ IT.forEach(i=>{i.taken=0;i.m.visible=c.o.some(o=>o.k=='item'&&o.it==i.k)});TXS.forEach(t=>{t.on=0;t.lamp.material.color.set(0xd23a22)});
+ if(!keep){P.x=sp[0];P.z=sp[1];P.yaw=sp[2];P.pitch=0;let t=0;while(hit(P.x,P.z,.5)&&t++<30){P.x+=rr(-1,1);P.z+=rr(-1,1)}}P.hp=Math.max(P.hp,60);
+ if(ch==1)inH(8);else spIn(10,140)}
+function chCard(keep){$('cine').hidden=1;beginCh(keep);const c=CH[ch];card(LANG=='zh'?'第'+cnum(c)+'章 — '+TR(c.e):'CHAPTER '+cnum(c)+' — '+c.e.toUpperCase(),c.ep?'Epilogue':'Objectives',(c.intro?(c.num==8&&SV.ei!=null?[EL[SV.ei]]:[]).concat(c.intro,['']):[]).concat(c.o.map(o=>'• '+o.t)).concat(c.rw?['','Reward: '+W[c.rw].n]:[]),'Begin',go)}
+function nr(a){let b=null,bd=1e9;for(const q of a){const d=Math.hypot(q.x-P.x,q.z-P.z);if(d<bd){bd=d;b=q}}return b}
+function tgt(){if(S.mode!='story'||!CH[ch])return null;const c=CH[ch];let o=null;for(let i=0;i<c.o.length;i++)if(!DN[i]){o=c.o[i];break}if(!o)return null;
+ if(o.k=='loot'){const q=nr(crates.filter(c2=>!c2.open));return q?{x:q.x,z:q.z,n:'Supplies'}:null}
+ if(o.k=='go')return PT[o.p];
+ if(o.k=='item'){const q=nr(IT.filter(i=>!i.taken&&i.k==o.it));return q?{x:q.x,z:q.z,n:o.it=='med'?(c.num==9?'Research sample':'Medical pack'):'Access key'}:null}
+ if(o.k=='defend'||o.k=='waves')return {x:PT.convoy.x+7,z:PT.convoy.z+5,n:'Convoy'};
+ if(o.k=='radio'){const q=nr(TXS.filter(t=>!t.on));return q?{x:q.x,z:q.z,n:'Transmitter'}:null}
+ if(o.k=='ug')return UG?{x:49,z:0,n:'Underground exit'}:PT.ugin;
+ if(o.k=='boss')return boss&&!boss.dead?{x:boss.x,z:boss.z,n:o.bn||'Infected leader'}:{x:LM[o.at||'check'].x,z:LM[o.at||'check'].z+16,n:o.bn||'Infected leader'};
+ if(o.k=='kill'||o.k=='talk'){const L=LM[o.at||'lab'];return{x:L.x,z:L.z,n:'Helix Research'}}
+ return null}
+function pg(o){const k=o.k;return k=='loot'?Math.min(o.n,P.loot-P.l0)+'/'+o.n:k=='item'?P.it[o.it]+'/'+o.n:k=='radio'?P.rd+'/'+o.n:k=='defend'?(Math.min(45,P.dt)|0)+'/45 '+TR('s')+' · '+TR('convoy')+' '+(CHP|0)+'%':k=='waves'?WV.filter(w=>w.every(z=>z.dead||z.gone)).length+'/3 '+TR('cleared'):k=='surv'?(Math.min(o.n,P.sv)|0)+'/'+o.n+' '+TR('s'):k=='kill'?Math.min(o.n,P.kills-P.k0)+'/'+o.n:''}
+function trk(){const c=CH[ch];if(!c)return'';let h='<small>'+(c.ep?TR('Chapter 7 · Epilogue'):LANG=='zh'?'第'+cnum(c)+'章 / 共 10 章':'Chapter '+cnum(c)+' of 10')+' · '+TR(c.e)+'</small>';c.o.forEach((o,i)=>{const dn=DN[i],ac=!dn&&(c.par||DN.slice(0,i).every(Boolean));h+='<span style="display:block;color:'+(dn?'#6f8a5a':ac?'#ddd6c4':'#6c6f69')+'">'+(dn?'✔ ':ac?'▶ ':'○ ')+TR(o.t)+(ac?' <small style="display:inline">'+pg(o)+'</small>':'')+'</span>'});const T=tgt();if(T)h+='<small>'+TR(T.n)+' · '+Math.round(Math.hypot(T.x-P.x,T.z-P.z))+' m</small>';return h}
+function mkUp(){const e=$('mk'),T=S.mode=='story'&&S.run&&!S.talk?tgt():null;if(!T){e.hidden=1;return}e.hidden=0;const v=new THREE.Vector3(T.x,UG?-7:2.5,T.z).project(cam);let x=v.x,y=v.y;if(v.z>1){x=-x;y=-.85}x=cl(x,-.88,.88);y=cl(y,-.85,.85);e.style.transform='translate('+((x+1)/2*innerWidth-55)+'px,'+((1-y)/2*innerHeight-20)+'px)';e.innerHTML='◆<br>'+TR(T.n)+' · '+Math.round(Math.hypot(T.x-P.x,T.z-P.z))+' m'}
+function setBeacon(){const T=S.mode=='story'?tgt():null;beacon.visible=!!T&&!UG;if(T)beacon.position.set(T.x,45,T.z)}
+function enterUG(){UG=1;zs.forEach(z=>sc.remove(z.g));zs=[];P.x=-48;P.z=0;P.yaw=-Math.PI/2;P.pitch=0;for(let i=0;i<14;i++){const z=spawnZ(R()<.3?'runner':'walker',rr(-30,46),rr(-2.4,2.4));z.ug=1}spawnZ('stalker',20,0).ug=1;note('Helix underground lab — find the exit');toast('The lab lights flicker. Use your flashlight (F).')}
+function exitUG(){UG=0;zs.forEach(z=>sc.remove(z.g));zs=[];P.x=PT.ugout.x;P.z=PT.ugout.z;P.yaw=0;spIn(8,140)}
+function spW(n){const cv=PT.convoy,w=[];for(let i=0;i<n;i++){const a=rr(0,6.28),d=rr(42,58),x=cv.x+Math.cos(a)*d,z=cv.z+Math.sin(a)*d;if(Math.abs(x)<145&&Math.abs(z)<145&&!hit(x,z,1)){const q=spawnZ(pickT(),x,z);q.tx=cv.x;q.tz=cv.z;q.inv=60;w.push(q)}}WV.push(w);note('Wave '+WV.length+' incoming!')}
+function dtick(dt){const cv=PT.convoy,d=Math.hypot(P.x-cv.x,P.z-cv.z);if(!P.mr&&d<24){P.mr=1;if(ch==2){mara();return}}if(d>48){P.wn-=dt;if(P.wn<=0){P.wn=4;toast('Return to the convoy!')}return}
+ P.dt+=dt;while(P.ws<3&&P.dt>=[0,15,30][P.ws]){spW([5,7,9][P.ws]);P.ws++}
+ for(const w of WV)for(const z of w)if(!z.dead&&!z.gone){if(z.al<=0)z.inv=Math.max(z.inv,5),z.tx=cv.x,z.tz=cv.z;if(Math.hypot(z.x-cv.x,z.z-cv.z)<5.5)CHP-=dt*.7}
+ if(CHP<=0){note('Convoy lost! Defense restarted');CHP=100;P.dt=0;P.ws=0;WV.forEach(w=>w.forEach(z=>z.dead=z.dead||.01));WV=[]}}
+function chk(o,dt){const k=o.k;
+ if(k=='loot')return P.loot-P.l0>=o.n;
+ if(k=='go'){const p=PT[o.p];return Math.hypot(P.x-p.x,P.z-p.z)<o.r}
+ if(k=='item')return P.it[o.it]>=o.n;
+ if(k=='radio')return P.rd>=o.n;
+ if(k=='surv'){P.sv+=dt;P.svt-=dt;if(P.svt<=0){P.svt=18;pack2(P,4);note('The horde is closing in!')}return P.sv>=o.n}
+ if(k=='defend')return P.dt>=45&&CHP>0;
+ if(k=='waves')return P.dt>=45&&P.ws>=3&&WV.every(w=>w.every(z=>z.dead||z.gone));
+ if(k=='ug'){if(UG&&P.x>=47.5){exitUG();return 1}return 0}
+ if(k=='kill'){if(!P.kl){P.kl=1;pack(o.at,o.n+4)}return P.kills-P.k0>=o.n}
+ if(k=='talk'){const T=LM.lab;if(!P.tk&&Math.hypot(P.x-T.x,P.z-T.z)<18){P.tk=1;hale2()}return P.tk==2}
+ if(k=='boss'){const T=LM[o.at||'check'];if(!boss&&Math.hypot(P.x-T.x,P.z-T.z)<50){boss=spawnZ('leader',T.x,T.z+16);boss.bn=o.bn;if(o.bn){boss.ms[1].color.set(0xe8e8e8);boss.ms[0].color.set(0x8a9a8a)}pack(o.at||'check',6);note(o.bn?'Dr. Hale injects the serum!':'The infected leader awakens!')}return !!(boss&&boss.dead)}
+ return 0}
+function oDone(i){DN[i]=1;note('✔ '+CH[ch].o[i].t);tn(660,.25,'sine',.15);setTimeout(()=>tn(880,.3,'sine',.12),150)}
+function chDone(){const c=CH[ch];S.talk=1;if(!c.ep&&ch<6)SV.u=Math.max(SV.u,ch+2);if(ch>=10)SV.m=Math.max(SV.m||0,ch-8);SV.t=P.trust;SV.r=P.radio;if(c.rw)gw(c.rw);if(c.on)c.on();sv();note('CHAPTER '+cnum(c)+' COMPLETE');
+ setTimeout(()=>{if(c.ep)epEnd();else if(ch==5)hale();else if(ch==12)finale();else{ch++;chCard(1)}},2600)}
+function objUp(dt){const bb=$('bb');bb.hidden=!(boss&&!boss.dead&&S.mode=='story');if(!bb.hidden){bb.firstChild.nodeValue=TR(boss.bn||'Infected Leader');}if(!bb.hidden)$('bbf').style.width=Math.max(0,boss.hp/TY.leader.hp*100)+'%';
+ if(S.mode!='story'||S.talk||ch>=CH.length)return;const c=CH[ch];
+ {const ao=c.o.find((o,i)=>!DN[i]);if(ao&&(ao.k=='defend'||ao.k=='waves'))dtick(dt)}
+ let first=1;for(let i=0;i<c.o.length;i++){if(DN[i])continue;if(!c.par&&!first)break;first=0;if(chk(c.o[i],dt))oDone(i)}
+ if(c.o.every((o,i)=>DN[i]))chDone()}
+function ia2(){if(S.mode!='story'||UG||!CH[ch])return null;const c=CH[ch];
+ for(const i of IT)if(!i.taken&&i.m.visible&&Math.hypot(i.x-P.x,i.z-P.z)<2.4)return{t:i.k=='med'?(c.num==9?'[E] Take research sample':'[E] Take medical pack'):'[E] Take access key',f:()=>{i.taken=1;i.m.visible=false;P.it[i.k]++;nse(.1,1500,.3);if(i.k=='med'){if(c.num!=9)P.inv.med++;toast((c.num==9?'Research sample ':'Medical pack ')+P.it.med+'/3')}else toast('Access key acquired')}};
+ if(c.o.some(o=>o.k=='radio'))for(const t of TXS)if(!t.on&&Math.hypot(t.x-P.x,t.z-P.z)<3)return{t:'[E] Activate transmitter',f:()=>{t.on=1;t.lamp.material.color.set(0x40d060);P.rd++;noise(t.x,t.z,90);tn(900,.4,'sine',.2,null,1400);toast('Transmitter '+P.rd+'/3 online — the signal draws the infected!');pack2(t,5)}};
+ if(c.o.some(o=>o.k=='ug')&&Math.hypot(PT.ugin.x-P.x,PT.ugin.z-P.z)<3)return P.it.key>0?{t:'[E] Enter the underground lab',f:enterUG}:{t:'Locked — find the access key',f:()=>toast('You need the access key first')};
+ return null}
+function interact(){if(P.ti)P.ti.f();else if(P.tc)lootC(P.tc)}
+
+const P={},OB=[];let inside=0,mzl,lamp,sc,cam,ren,zs=[],crates=[],beacon,rain,spot,hemi,sun,wg=[],A,master,nbuf,ch=0,boss=null,wave=0,wt=0,tod=.9,fx=0,shake=0,st=0,sideDone=0,spT=0,wx={f:.02,r:1,t:30},nz=[],thT=20,scT=25;
+const clock=new THREE.Clock(),keys={};
+const bm=v=>((v+18)%36+36)%36,inBlk=(x,z)=>bm(x)>=6&&bm(x)<=30&&bm(z)>=6&&bm(z)<=30;
+function hit(x,z,r,y=0){for(const o of OB){if(!!o.u!=!!UG)continue;if(o.h>y&&x>o.x1-r&&x<o.x2+r&&z>o.z1-r&&z<o.z2+r)return 1}return 0}
+function mv(o,dx,dz,r){if(!hit(o.x+dx,o.z,r))o.x+=dx;if(!hit(o.x,o.z+dz,r))o.z+=dz;o.x=cl(o.x,-150,150);o.z=cl(o.z,-150,150)}
+function addOb(x,z,w,d,h,b,u){OB.push({x1:x-w/2,x2:x+w/2,z1:z-d/2,z2:z+d/2,h,b,u})}
+/* ---------- world ---------- */
+function winTex(){const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');g.fillStyle='#8f9390';g.fillRect(0,0,64,64);for(let i=0;i<4;i++)for(let j=0;j<4;j++){g.fillStyle=R()<.12?'#d9a24a':'#1a1d1f';g.fillRect(i*16+3,j*16+4,10,9)}return new THREE.CanvasTexture(c)}
+function label(t,x,y,z){const c=document.createElement('canvas');c.width=512;c.height=96;const tx=new THREE.CanvasTexture(c),o={c,tx,t};drawLbl(o);LBL.push(o);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tx,fog:false,transparent:true}));s.scale.set(26,5,1);s.position.set(x,y,z);sc.add(s)}
+let WT;
+const bl=[];
+function inB(x,z,r=0){return bl.find(b=>Math.abs(x-b.cx)<b.w/2+r&&Math.abs(z-b.cz)<b.d/2+r)}
+function wl(x,z,w,d,h,col,y=0){const t=WT.clone();t.needsUpdate=true;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(Math.max(1,Math.max(w,d)/6|0),Math.max(1,h/3|0));const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshLambertMaterial({color:col,map:t}));m.position.set(x,y+h/2,z);sc.add(m);return m}
+function bld(x,z,w,d,h,col,big){if(bl.some(b=>Math.abs(b.cx-x)<(b.w+w)/2+1&&Math.abs(b.cz-z)<(b.d+d)/2+1))return;
+ const fh=big?5.2:4.2,T=.5,G=2.8;bl.push({cx:x,cz:z,w,d});
+ const ox=x-Math.round(x/36)*36,oz=z-Math.round(z/36)*36,dz=big?1:(Math.abs(oz)>=Math.abs(ox)?(Math.sign(oz)||1):0),dx=dz?0:(Math.sign(ox)||1);
+ const seg=(ax,az,bx,bz)=>{const w2=Math.abs(bx-ax)||T,d2=Math.abs(bz-az)||T,cx=(ax+bx)/2,cz=(az+bz)/2;wl(cx,cz,w2,d2,fh,col);addOb(cx,cz,w2,d2,fh,1)};
+ for(const s of[-1,1]){const zz=z+s*d/2,xx=x+s*w/2;
+  if(dz==s){seg(x-w/2,zz,x-G/2,zz);seg(x+G/2,zz,x+w/2,zz);wl(x,zz,G,T,fh-2.6,col,2.6)}else seg(x-w/2,zz,x+w/2,zz);
+  if(dx==s){seg(xx,z-d/2,xx,z-G/2);seg(xx,z+G/2,xx,z+d/2);wl(xx,z,T,G,fh-2.6,col,2.6)}else seg(xx,z-d/2,xx,z+d/2)}
+ wl(x,z,w,d,Math.max(.6,h-fh),col,fh);
+ const fl=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshLambertMaterial({color:big?0x6e7270:0x3a322a}));fl.rotation.x=-Math.PI/2;fl.position.set(x,.04,z);sc.add(fl);
+ for(let i=0;i<(big?8:3);i++){const fw=rr(1,2.4),fd=rr(.6,1.4),fz=rr(.7,1.8),px=x+rr(-w/2+2,w/2-2),pz=z+rr(-d/2+2,d/2-2);if((dz&&Math.abs(px-x)<2.6)||(dx&&Math.abs(pz-z)<2.6))continue;
+  const q=new THREE.Mesh(new THREE.BoxGeometry(fw,fz,fd),new THREE.MeshLambertMaterial({color:pk([0x4a3a2a,0x3a3f44,0x5a4a3a,0x2c3a2c])}));q.position.set(px,fz/2,pz);q.rotation.y=0;sc.add(q);addOb(px,pz,fw,fd,fz)}}
+function world(){
+ sc=new THREE.Scene();sc.background=new THREE.Color(0x05070a);sc.fog=new THREE.FogExp2(0x05070a,.02);
+ cam=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.1,260);cam.rotation.order='YXZ';sc.add(cam);
+ ren=new THREE.WebGLRenderer({canvas:$('c'),antialias:true});ren.setPixelRatio(Math.min(devicePixelRatio,1.5));ren.setSize(innerWidth,innerHeight);
+ hemi=new THREE.HemisphereLight(0x8899aa,0x222218,.4);sc.add(hemi);lamp=new THREE.PointLight(0xffc880,0,16,1.4);sc.add(lamp);sun=new THREE.DirectionalLight(0xffe0b0,.3);sun.position.set(40,80,30);sc.add(sun);
+ spot=new THREE.SpotLight(0xfff2cc,2.2,70,.42,.5,1.2);spot.position.set(.2,-.1,0);spot.target.position.set(0,0,-10);cam.add(spot,spot.target);
+ const gr=new THREE.Mesh(new THREE.PlaneGeometry(500,500),new THREE.MeshLambertMaterial({color:0x1d2418}));gr.rotation.x=-Math.PI/2;sc.add(gr);
+ const rm=new THREE.MeshLambertMaterial({color:0x17181a});
+ for(let i=-5;i<=4;i++){const a=new THREE.Mesh(new THREE.BoxGeometry(12,.05,330),rm);a.position.set(18+36*i,.03,0);const b=new THREE.Mesh(new THREE.BoxGeometry(330,.05,12),rm);b.position.set(0,.03,18+36*i);sc.add(a,b)}
+ WT=winTex();const lmk=Object.values(LM).map(l=>l.x+','+l.z);
+ for(let i=-3;i<=3;i++)for(let j=-3;j<=3;j++){const x=i*36,z=j*36;
+  if(lmk.includes(x+','+z)){const l=Object.values(LM).find(q=>q.x==x&&q.z==z);bld(x,z,20,20,l[3]==0xdde6ec?16:12,l[3],1);label(l[2],x,17,z);continue}
+  const n=1+(R()*3|0);for(let k=0;k<n;k++){const w=rr(7,12),d=rr(7,12),ox=rr(-12+w/2,12-w/2),oz=rr(-12+d/2,12-d/2);if(n>1&&hit(x+ox,z+oz,Math.max(w,d)/2))continue;bld(x+ox,z+oz,w,d,rr(8,26),new THREE.Color().setHSL(rr(.05,.12),.1,rr(.25,.45)).getHex())}}
+ // forest + overgrowth
+ const N=900,tr=new THREE.InstancedMesh(new THREE.CylinderGeometry(.25,.35,3,5),new THREE.MeshLambertMaterial({color:0x3a2a1c}),N),cn=new THREE.InstancedMesh(new THREE.ConeGeometry(1.8,6,6),new THREE.MeshLambertMaterial({color:0x1d3a22}),N),d=new THREE.Object3D();
+ for(let n=0;n<N;n++){let x,z;if(n<780){do{x=rr(-160,160);z=rr(-160,160)}while(Math.abs(x)<125&&Math.abs(z)<125||Math.hypot(x-PT.ugin.x,z-PT.ugin.z)<12||Math.hypot(x-PT.ugout.x,z-PT.ugout.z)<12)}else{do{x=rr(-120,120);z=rr(-120,120)}while(!inBlk(x,z)||hit(x,z,2)||inB(x,z,2))}
+  const s=rr(.8,1.4);d.position.set(x,1.5*s,z);d.scale.set(s,s,s);d.updateMatrix();tr.setMatrixAt(n,d.matrix);d.position.y=5*s;d.updateMatrix();cn.setMatrixAt(n,d.matrix);if(Math.abs(x)<150&&Math.abs(z)<150)addOb(x,z,.9,.9,6)}
+ sc.add(tr,cn);
+ // wrecks
+ for(let n=0;n<45;n++){const ax=R()<.5,x=ax?18+36*((R()*9|0)-5):rr(-140,140),z=ax?rr(-140,140):18+36*((R()*9|0)-5),w=ax?2:4.4,dd=ax?4.4:2,m=new THREE.Mesh(new THREE.BoxGeometry(w,1.3,dd),new THREE.MeshLambertMaterial({color:pk([0x5a2a20,0x2a3a4a,0x4a4a40,0x30302c])}));m.position.set(x+rr(-2,2),.65,z);sc.add(m);addOb(m.position.x,z,w,dd,1.3)}
+ beacon=new THREE.Mesh(new THREE.CylinderGeometry(.7,.7,90,12,1,true),new THREE.MeshBasicMaterial({color:0xe6a23c,transparent:true,opacity:.25,side:2,fog:false}));beacon.position.y=45;sc.add(beacon);
+ const rg=new THREE.BufferGeometry(),ra=new Float32Array(1200*6);for(let i=0;i<1200;i++){const x=rr(-25,25),y=rr(0,30),z=rr(-25,25);ra.set([x,y,z,x+.1,y+.6,z],i*6)}rg.setAttribute('position',new THREE.BufferAttribute(ra,3));
+ rain=new THREE.LineSegments(rg,new THREE.LineBasicMaterial({color:0x8899aa,transparent:true,opacity:.35}));rain.frustumCulled=false;sc.add(rain);
+ // viewmodels
+ const M=(w,h,d,c,x=0,y=0,z=0)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshLambertMaterial({color:c}));m.position.set(x,y,z);return m};
+ const PH=(c,sh)=>new THREE.MeshPhongMaterial({color:c,shininess:sh||40,specular:0x666666}),ST=PH(0x2a2c30,90),PL=PH(0x141516,20),WDm=PH(0x5a3a1e,12),BR=PH(0xb08a40,90),GL=PH(0x1c1c1e,5),SL=PH(0x3a4232,3);
+ const bx=(p,w,h,d,m,x,y,z,rx)=>{const q=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);q.position.set(x,y,z);q.rotation.x=rx||0;p.add(q);return q};
+ const cz=(p,r,len,m,x,y,z)=>{const q=new THREE.Mesh(new THREE.CylinderGeometry(r,r,len,10),m);q.rotation.x=Math.PI/2;q.position.set(x,y,z);p.add(q);return q};
+ const hands=(g,long)=>{bx(g,.055,.075,.09,GL,0,-.07,.05);bx(g,.075,.075,.42,SL,.03,-.1,.3,.12);if(long){bx(g,.06,.06,.09,GL,0,-.045,-.3);bx(g,.07,.07,.4,SL,-.07,-.12,-.08,.28)}};
+ const gun=(pos,fn)=>{const g=new THREE.Group(),u={m:new THREE.Vector3(0,0,-.3)};fn(g,u);u.mz=new THREE.Object3D();u.mz.position.copy(u.m);g.add(u.mz);const fl=new THREE.Group();[0,1].forEach(i=>{const q=new THREE.Mesh(new THREE.PlaneGeometry(.2,.2),new THREE.MeshBasicMaterial({color:0xffc060,transparent:true,opacity:.95,blending:THREE.AdditiveBlending,depthWrite:false,side:2,fog:false}));q.rotation.y=i*1.57;fl.add(q)});fl.visible=false;u.mz.add(fl);u.fl=fl;g.userData=u;g.position.set(pos[0],pos[1],pos[2]);u.p0=g.position.clone();g.visible=false;cam.add(g);wg.push(g)};
+ gun([.3,-.35,-.45],(g,u)=>{bx(g,.04,.72,.04,WDm,0,.15,0);bx(g,.05,.14,.05,GL,0,-.12,0);bx(g,.22,.13,.05,ST,.1,.46,0);bx(g,.04,.2,.02,PH(0xaab0b4,120),.22,.46,0);u.k=.02;u.rot=0});
+ gun([.26,-.24,-.45],(g,u)=>{u.sl=new THREE.Group();g.add(u.sl);bx(u.sl,.036,.045,.27,ST,0,.05,-.13);bx(u.sl,.008,.012,.02,PL,0,.08,-.03);bx(u.sl,.008,.01,.015,PL,0,.082,-.25);cz(g,.009,.05,ST,0,.04,-.275);bx(g,.034,.035,.22,PL,0,.008,-.11);bx(g,.034,.11,.055,PL,0,-.055,.03,.18);bx(g,.01,.03,.05,PL,0,-.025,-.03);u.mag=new THREE.Group();g.add(u.mag);bx(u.mag,.028,.1,.04,ST,0,-.12,.045,.18);hands(g,0);u.m=new THREE.Vector3(0,.045,-.3);u.k=.07;u.rot=.12});
+ gun([.28,-.27,-.5],(g,u)=>{cz(g,.016,.8,ST,0,.035,-.42);cz(g,.013,.55,ST,0,-.005,-.35);bx(g,.05,.075,.24,ST,0,.005,-.02);bx(g,.046,.085,.32,WDm,0,-.02,.24,.12);u.pump=new THREE.Group();g.add(u.pump);bx(u.pump,.058,.05,.2,WDm,0,-.012,-.3);bx(u.pump,.062,.015,.2,PL,0,-.04,-.3);bx(g,.012,.012,.012,BR,0,.058,-.82);bx(g,.012,.04,.03,ST,0,-.05,.02);hands(g,1);u.m=new THREE.Vector3(0,.035,-.84);u.k=.12;u.rot=.2});
+ gun([.27,-.26,-.5],(g,u)=>{bx(g,.05,.075,.32,ST,0,.02,-.1);bx(g,.05,.05,.26,WDm,0,.01,-.32);cz(g,.012,.4,ST,0,.04,-.55);bx(g,.03,.04,.1,ST,0,.075,-.2);u.mag=new THREE.Group();g.add(u.mag);bx(u.mag,.03,.15,.055,ST,0,-.11,-.08,-.2);bx(g,.04,.1,.05,PL,0,-.075,.06,.2);bx(g,.045,.09,.3,WDm,0,0,.26);bx(g,.008,.025,.008,ST,0,.075,-.74);hands(g,1);u.m=new THREE.Vector3(0,.04,-.76);u.k=.06;u.rot=.07});
+ gun([.27,-.27,-.5],(g,u)=>{bx(g,.045,.07,.4,WDm,0,.01,-.1);cz(g,.014,.6,ST,0,.035,-.6);cz(g,.03,.22,PL,0,.095,-.12);cz(g,.034,.02,PH(0x335577,120),0,.095,-.24);bx(g,.01,.035,.01,PL,0,.065,-.12);u.pump=new THREE.Group();g.add(u.pump);bx(u.pump,.04,.012,.012,ST,.03,.03,.02);bx(g,.045,.1,.3,WDm,0,0,.28,.1);u.mag=new THREE.Group();g.add(u.mag);bx(u.mag,.03,.05,.06,ST,0,-.06,-.1);hands(g,1);u.m=new THREE.Vector3(0,.035,-.92);u.k=.11;u.rot=.15});
+ gun([.27,-.25,-.5],(g,u)=>{bx(g,.05,.07,.34,PL,0,.02,-.15);bx(g,.054,.03,.26,ST,0,.062,-.15);cz(g,.014,.22,ST,0,.025,-.4);cz(g,.022,.14,PL,0,.025,-.34);bx(g,.03,.11,.05,PL,0,-.08,.04,.2);u.mag=new THREE.Group();g.add(u.mag);bx(u.mag,.03,.17,.05,ST,0,-.11,-.1,-.12);bx(g,.03,.03,.22,ST,0,.02,.2);bx(g,.03,.09,.02,PL,0,-.01,.31);bx(g,.01,.03,.01,PL,0,.085,-.28);hands(g,1);u.m=new THREE.Vector3(0,.025,-.52);u.k=.04;u.rot=.05});
+ mzl=new THREE.PointLight(0xffb060,0,9,2);mzl.position.set(.25,-.1,-.9);cam.add(mzl);
+
+}
+/* ---------- audio ---------- */
+let comp,amb;
+function ia(){if(A){if(A.state!='running')A.resume();return}A=new(window.AudioContext||window.webkitAudioContext)();
+ comp=A.createDynamicsCompressor();comp.threshold.value=-14;comp.knee.value=20;comp.ratio.value=6;comp.attack.value=.002;comp.release.value=.2;
+ master=A.createGain();master.gain.value=S.vol*1.4;master.connect(comp);comp.connect(A.destination);
+ amb=A.createGain();amb.gain.value=.4;amb.connect(master);
+ nbuf=A.createBuffer(1,A.sampleRate*2,A.sampleRate);const d=nbuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=R()*2-1;
+ const s=A.createBufferSource();s.buffer=nbuf;s.loop=true;const f=A.createBiquadFilter();f.type='highpass';f.frequency.value=2200;const g=A.createGain();g.gain.value=.025;s.connect(f);f.connect(g);g.connect(amb);s.start();
+ const o=A.createOscillator();o.frequency.value=48;const og=A.createGain();og.gain.value=.012;const l=A.createOscillator();l.frequency.value=.08;const lg=A.createGain();lg.gain.value=.008;l.connect(lg);lg.connect(og.gain);o.connect(og);og.connect(amb);o.start();l.start();
+ A.resume()}
+function p3(x,z){if(!A)return master;const p=A.createPanner();p.panningModel='HRTF';p.refDistance=3;p.rolloffFactor=1.3;if(p.positionX){p.positionX.value=x;p.positionY.value=1.5;p.positionZ.value=z}else p.setPosition(x,1.5,z);p.connect(master);return p}
+function nse(dur,fq,v,dest,type='lowpass'){if(!A)return;const s=A.createBufferSource();s.buffer=nbuf;const f=A.createBiquadFilter();f.type=type;f.frequency.value=fq;const g=A.createGain();g.gain.setValueAtTime(v,A.currentTime);g.gain.exponentialRampToValueAtTime(.001,A.currentTime+dur);s.connect(f);f.connect(g);g.connect(dest||master);s.start(0,R());s.stop(A.currentTime+dur)}
+function tn(fq,dur,type,v,dest,to){if(!A)return;const o=A.createOscillator();o.type=type;o.frequency.setValueAtTime(fq,A.currentTime);if(to)o.frequency.exponentialRampToValueAtTime(to,A.currentTime+dur);const g=A.createGain();g.gain.setValueAtTime(v,A.currentTime);g.gain.exponentialRampToValueAtTime(.001,A.currentTime+dur);o.connect(g);g.connect(dest||master);o.start();o.stop(A.currentTime+dur)}
+function groan(z){const d=p3(z.x,z.z),big=z.d.s>1;nse(.8,big?260:rr(350,480),.3,d);tn(big?70:rr(95,125),.9,'sine',.16,d,big?45:70)}
+function listen(){if(!A||!A.listener.positionX)return;const l=A.listener;l.positionX.value=P.x;l.positionY.value=1.7;l.positionZ.value=P.z;l.forwardX.value=-Math.sin(P.yaw);l.forwardY.value=0;l.forwardZ.value=-Math.cos(P.yaw);l.upX.value=0;l.upY.value=1;l.upZ.value=0}
+function speak(t,w){try{const u=new SpeechSynthesisUtterance(t.replace(/[“”]/g,''));u.lang=LANG=='zh'?'zh-CN':'en-US';u.rate=.92;u.pitch=w=='Mara'?1.3:w=='Dr. Hale'?.6:1;u.volume=S.vol;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+function noise(x,z,r){nz.push({x,z,r});for(const q of zs){if(q.dead)continue;const d=Math.hypot(q.x-x,q.z-z);if(d<r*(q.t=='stalker'?.8:1)){q.tx=x;q.tz=z;q.inv=9}}}
+/* ---------- zombies ---------- */
+function spawnZ(t,x,z){const d=TY[t],s=d.s,g=new THREE.Group(),m=new THREE.MeshLambertMaterial({color:new THREE.Color(d.c).offsetHSL(rr(-.03,.03),0,rr(-.06,.04)),transparent:true}),cm=new THREE.MeshLambertMaterial({color:pk([0x2e3340,0x4a3a2c,0x3a2e2e,0x2a3a30,0x5a5a50,0x6a2a2a]),transparent:true}),pm=new THREE.MeshLambertMaterial({color:pk([0x23262b,0x3a3226,0x2a2f3a]),transparent:true}),bd=new THREE.MeshLambertMaterial({color:0x560c0c,transparent:true}),em=new THREE.MeshBasicMaterial({color:t=='runner'||t=='brute'||t=='leader'?0xff3a20:0xd8e040});
+ const cy=(a,b,h,mt)=>new THREE.Mesh(new THREE.CylinderGeometry(a,b,h,8),mt),ad=(o,p,px,py,pz)=>{o.position.set(px,py,pz);p.add(o);return o},bo=(w,h,dd,mt)=>new THREE.Mesh(new THREE.BoxGeometry(w,h,dd),mt),sp=(r,mt)=>new THREE.Mesh(new THREE.SphereGeometry(r,10,8),mt);
+ g.scale.setScalar(s);ad(cy(.2,.17,.26,pm),g,0,.88,0);
+ const up=ad(new THREE.Group(),g,0,.95,0);up.rotation.x=-.28;const tr=ad(cy(.22,.2,.6,cm),up,0,.3,0);tr.scale.z=.62;ad(cy(.06,.07,.1,m),up,0,.64,0);
+ const hd=ad(new THREE.Group(),up,0,.76,-.03),sk=ad(sp(.14,m),hd,0,0,0);sk.scale.set(.9,1.1,1);ad(bo(.12,.04,.1,bd),hd,0,-.1,-.04);ad(sp(.025,em),hd,-.05,.02,-.12);ad(sp(.025,em),hd,.05,.02,-.12);ad(bo(.05,.07,.04,bd),hd,.1,.05,-.06);
+ const a=[],l=[];for(const sx of[-1,1]){const p=ad(new THREE.Group(),up,sx*.3,.5,0);p.rotation.set(1.25,0,sx*.12);ad(cy(.055,.05,.3,cm),p,0,-.15,0);ad(cy(.045,.04,.3,m),p,0,-.45,0);ad(sp(.05,m),p,0,-.62,0);a.push(p);
+  const q=ad(new THREE.Group(),g,sx*.1,.82,0);ad(cy(.085,.07,.42,pm),q,0,-.2,0);ad(cy(.065,.055,.4,pm),q,0,-.58,0);ad(bo(.1,.06,.2,bd),q,0,-.8,-.04);l.push(q)}
+ for(let i=0;i<3;i++)ad(bo(rr(.06,.14),rr(.06,.12),.02,bd),up,rr(-.12,.12),rr(.1,.5),-.14);
+ if(t=='screamer'||t=='brute'||t=='leader'){const e=new THREE.PointLight(t=='screamer'?0xcccc40:0xff3010,.6,5);e.position.set(0,1.8,-.3);g.add(e)}
+ g.position.set(x,0,z);sc.add(g);const z0={g,m,ms:[m,cm,pm,bd],t,d,hp:d.hp,x,z,yaw:rr(0,6.28),l,a,head:hd,ph:rr(0,6),cd:0,al:0,inv:0,gt:rr(2,8),wy:rr(0,6.28),wt:0,dead:0,sc:0};zs.push(z0);return z0}
+function spIn(n,near){for(let i=0;i<n;i++){const c=bl.filter(b=>{const d=Math.hypot(b.cx-P.x,b.cz-P.z);return d>30&&d<near});if(!c.length)return;const b=pk(c),x=b.cx+rr(-b.w/2+1.5,b.w/2-1.5),z=b.cz+rr(-b.d/2+1.5,b.d/2-1.5);if(!hit(x,z,.8))spawnZ(R()<.7?'walker':pickT(),x,z)}}
+function rp(min,max){for(let i=0;i<30;i++){const a=rr(0,6.28),d=rr(min,max),x=P.x+Math.cos(a)*d,z=P.z+Math.sin(a)*d;if(Math.abs(x)<145&&Math.abs(z)<145&&!hit(x,z,1))return[x,z]}return null}
+function pickT(){const n=tod%1>.5&&tod%1<.95?1.8:1;let T=Object.entries(TY).map(([k,v])=>[k,v.w*((k=='runner'||k=='stalker')?n:1)*(k=='brute'?(S.mode=='survival'?1+wave/4:.5):1)]),r=R()*T.reduce((a,b)=>a+b[1],0);for(const[k,w]of T){r-=w;if(r<0)return k}return'walker'}
+function pack(l,n){const L=LM[l];for(let i=0;i<n;i++){const a=rr(0,6.28),d=rr(14,30),x=L.x+Math.cos(a)*d,z=L.z+Math.sin(a)*d;if(!hit(x,z,1))spawnZ(pickT(),x,z)}}
+function zUp(z,dt){if(z.dead){z.dead+=dt;z.g.rotation.x=Math.max(-1.5,-z.dead*4);if(z.dead>10){sc.remove(z.g);z.gone=1}return}
+ const dx=P.x-z.x,dz=P.z-z.z,d=Math.hypot(dx,dz),fa=Math.atan2(-dx,-dz),df=Math.abs(((fa-z.yaw+9.42)%6.283)-3.14159);
+ let see=d<(P.cr?7:15)&&(df<1.5||d<5)||(d<26&&P.fl&&fx<.5&&df<1.2&&!P.cr);
+ if(see&&!z.al&&z.d.sc===undefined&&z.t=='screamer'&&z.sc<=0){z.sc=12;noise(z.x,z.z,75);tn(500,1.3,'sine',.12,p3(z.x,z.z),1100)}
+ z.sc-=dt;if(see)z.al=5;else z.al=Math.max(0,z.al-dt);z.inv=Math.max(0,z.inv-dt);
+ let tx,tz,sp=z.d.sp;
+ if(z.al>0){tx=P.x;tz=P.z;if(z.t=='stalker'&&d<9)sp*=1.3}else if(z.inv>0){tx=z.tx;tz=z.tz;sp*=.8}else{z.wt-=dt;if(z.wt<0){z.wy=rr(0,6.28);z.wt=rr(2,6)}tx=z.x-Math.sin(z.wy)*5;tz=z.z-Math.cos(z.wy)*5;sp*=.35}
+ const ty=Math.atan2(-(tx-z.x),-(tz-z.z));let dy=((ty-z.yaw+9.42)%6.283)-3.14159;z.yaw+=cl(dy,-6*dt,6*dt);
+ const td=Math.hypot(tx-z.x,tz-z.z);if(td>1.1||z.al<=0){mv(z,-Math.sin(z.yaw)*sp*dt,-Math.cos(z.yaw)*sp*dt,.5*z.d.s);if(z.al<=0&&z.inv>0&&td<2)z.inv=0}
+ z.ph+=sp*dt*2.2;const sw=Math.sin(z.ph)*(z.al>0?.7:.45);z.l[0].rotation.x=sw;z.l[1].rotation.x=-sw*(z.t=='walker'?.4:1);z.a[0].rotation.x=z.a[1].rotation.x=(z.al>0&&d<3?1.55:1.2)+sw*.15;z.head.rotation.z=Math.sin(z.ph*.5)*.18;z.head.rotation.x=.15;
+ z.g.position.set(z.x,z.ug?-10:0,z.z);z.g.rotation.y=z.yaw;{const op=z.t=='stalker'&&z.al<=0&&d>7?.15:1;for(const q of z.ms)q.opacity=op}
+ z.gt-=dt;if(z.gt<0&&(z.al>0||z.inv>0||d<30)){z.gt=rr(4,9);groan(z)}
+ z.cd-=dt;if(d<1.2*z.d.s+.5&&z.cd<=0&&Math.abs(P.jy)<.8){z.cd=1.1;hurt(z.d.dm)}}
+const BPG=new THREE.BoxGeometry(.05,.05,.05),BPM=[new THREE.MeshBasicMaterial({color:0x9a0e0e}),new THREE.MeshBasicMaterial({color:0x5a0707})],DCG=new THREE.PlaneGeometry(1,1),DCM=new THREE.MeshBasicMaterial({color:0x4a0707,transparent:true,opacity:.75,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2});
+let BP=[],GB=[],DC=[];
+function bloodAt(pt,dir,n,yo){if(S.ngore)return;for(let i=0;i<n;i++){const m=new THREE.Mesh(BPG,BPM[R()<.6?0:1]);m.position.copy(pt);m.scale.setScalar(rr(.6,1.6));m.userData={vx:dir.x*rr(1.5,5)+rr(-2,2),vy:dir.y*rr(1,3)+rr(1,4),vz:dir.z*rr(1.5,5)+rr(-2,2),gy:yo,life:1};sc.add(m);BP.push(m)}while(BP.length>240)sc.remove(BP.shift())}
+function chunk(geo,mat,pos,vel,yo,sz){const m=new THREE.Mesh(geo,mat);m.position.copy(pos);m.scale.setScalar(sz||1);m.rotation.set(rr(0,6),rr(0,6),rr(0,6));m.userData={vx:vel.x,vy:vel.y,vz:vel.z,rx:rr(-9,9),rz:rr(-9,9),gy:yo,life:25};sc.add(m);GB.push(m);while(GB.length>28)sc.remove(GB.shift())}
+function gUp(dt){for(let i=BP.length-1;i>=0;i--){const m=BP[i],u=m.userData;u.vy-=14*dt;m.position.x+=u.vx*dt;m.position.y+=u.vy*dt;m.position.z+=u.vz*dt;u.life-=dt;if(m.position.y<=u.gy+.03||u.life<=0){if(m.position.y<=u.gy+.05&&R()<.5){const d=new THREE.Mesh(DCG,DCM);d.rotation.x=-Math.PI/2;d.rotation.z=rr(0,6);const q=rr(.15,.55);d.scale.set(q,q*rr(.6,1.2),1);d.position.set(m.position.x,u.gy+.03,m.position.z);sc.add(d);DC.push(d);while(DC.length>90)sc.remove(DC.shift())}sc.remove(m);BP.splice(i,1)}}
+ for(const m of GB){const u=m.userData;u.vy-=18*dt;m.position.x+=u.vx*dt;m.position.y+=u.vy*dt;m.position.z+=u.vz*dt;m.rotation.x+=u.rx*dt;m.rotation.z+=u.rz*dt;if(m.position.y<u.gy+.1){m.position.y=u.gy+.1;u.vy*=-.3;u.vx*=.6;u.vz*=.6;u.rx*=.5;u.rz*=.5;if(Math.abs(u.vy)<.4)u.vy=0}u.life-=dt}
+ for(let i=GB.length-1;i>=0;i--)if(GB[i].userData.life<=0){sc.remove(GB[i]);GB.splice(i,1)}}
+function clearGore(){[BP,GB,DC].forEach(a=>{a.forEach(m=>sc.remove(m));a.length=0})}
+function gore(z,hs,pt,dd,yo){if(S.ngore)return;const near=Math.hypot(z.x-P.x,z.z-P.z)<4,r=R(),sg=W[P.wep].pel>1;let kind=hs?'head':(near&&sg?(r<.5?'head':r<.85?'arm':'leg'):r<.25?'head':r<.55?'arm':r<.7?'leg':'');if(!kind)return;
+ const s=z.d.s,bd=z.ms[3],up=z.head.parent,vel=()=>new THREE.Vector3(dd.x*rr(2,5)+rr(-2,2),rr(3,6),dd.z*rr(2,5)+rr(-2,2)),wp=new THREE.Vector3();
+ const smat=()=>new THREE.MeshLambertMaterial({color:z.ms[0].color});
+ if(kind=='head'){z.head.getWorldPosition(wp);z.head.visible=false;const st=new THREE.Mesh(new THREE.CylinderGeometry(.08,.1,.12,8),bd);st.position.set(0,.7,-.03);up.add(st);
+  chunk(new THREE.SphereGeometry(.14,8,6),smat(),wp,vel(),yo,s);for(let i=0;i<4;i++)chunk(BPG,BPM[i%2],wp,vel(),yo,rr(1.5,3));bloodAt(wp,new THREE.Vector3(0,1,0),24,yo)}
+ else if(kind=='arm'){const k=pk([0,1]),pv=z.a[k];pv.getWorldPosition(wp);pv.visible=false;const st=new THREE.Mesh(new THREE.SphereGeometry(.07,8,6),bd);st.position.set(pv.position.x,pv.position.y,0);up.add(st);
+  chunk(new THREE.CylinderGeometry(.05,.045,.62,8),smat(),wp,vel(),yo,s);bloodAt(wp,new THREE.Vector3(dd.x,.5,dd.z),18,yo)}
+ else{const k=pk([0,1]),pv=z.l[k];pv.getWorldPosition(wp);pv.visible=false;const st=new THREE.Mesh(new THREE.SphereGeometry(.09,8,6),bd);st.position.set(pv.position.x,.82,0);z.g.add(st);
+  chunk(new THREE.CylinderGeometry(.075,.06,.82,8),new THREE.MeshLambertMaterial({color:0x2a2f3a}),wp,vel(),yo,s);bloodAt(wp,new THREE.Vector3(dd.x,.5,dd.z),18,yo)}
+ nse(.22,400,.55);tn(90,.2,'sine',.4,null,40)}
+function dmgZ(z,a,hs,pt,dir){z.hp-=a*(hs?2.5:1);z.al=6;z.tx=P.x;z.tz=P.z;const yo=z.ug?-10:0;if(!pt)pt=new THREE.Vector3(z.x,1.1*z.d.s+yo,z.z);const dd=dir||new THREE.Vector3(0,.2,-1);bloodAt(pt,dd,hs?14:6,yo);nse(.07,800,.25);
+ if(z.hp<=0&&!z.dead){z.dead=.01;P.kills++;nse(.3,300,.3,p3(z.x,z.z));gore(z,hs,pt,dd,yo);if(R()<.3){const k=pk(['cloth','scrap','food']);P.inv[k]++;toast('Found '+k)}}}
+/* ---------- player ---------- */
+function hurt(a){P.hp-=a;$('dmg').style.opacity=1;shake=.3;nse(.25,500,.5);tn(120,.25,'sine',.5,null,50);if(P.hp<=0)die()}
+function toast(t){const e=$('toast');e.textContent=TR(t);clearTimeout(toast.h);toast.h=setTimeout(()=>e.textContent='',3200)}
+function fire(){const w=W[P.wep];if(P.cd>0||!S.run||S.talk)return;if(P.rl>0){if(w.sh&&P.mag[P.wep]>0)P.rl=0;else return}
+ if(w.m){if(P.dur<=0)return toast('The axe is broken. Repair it with scrap (V)');if(P.st<8)return;P.cd=w.rate;P.sw=1;P.st-=8;P.dur-=1.5;nse(.2,900,.25,null,'bandpass');noise(P.x,P.z,14);const fx2=-Math.sin(P.yaw),fz2=-Math.cos(P.yaw);for(const z of zs){if(z.dead)continue;const dx=z.x-P.x,dz=z.z-P.z,d=Math.hypot(dx,dz);if(d<2.7*z.d.s&&(dx*fx2+dz*fz2)/d>.5){dmgZ(z,w.dmg,0,null,new THREE.Vector3(fx2,.2,fz2));z.x+=fx2*.6;z.z+=fz2*.6;nse(.1,500,.4)}}return}
+ if(P.mag[P.wep]<=0){P.cd=.4;dry();if(P.res[P.wep]>0)reload();else toast('Out of ammo');return}
+ const u=wg[P.wep].userData,yo=UG?10:0;P.mag[P.wep]--;P.cd=w.rate;P.kick=1;P.fm=.05;noise(P.x,P.z,w.nz);snd(w.t);spot.intensity=6;mzl.intensity=3;setTimeout(()=>{spot.intensity=2.2;mzl.intensity=0},55);
+ if(w.pump){P.pump=1;setTimeout(()=>rl(5),w.rate*330);setTimeout(()=>rl(6),w.rate*560)}
+ const rc=w.rp*(P.ads?.7:1)*(P.cr?.8:1)*rr(.8,1.2);P.pitch=cl(P.pitch+rc,-1.45,1.45);P.rec+=rc;P.yaw+=rr(-w.ry,w.ry);P.bl=Math.min(1,P.bl+w.bl);shake=Math.max(shake,w.pel>1?.12:.04);
+ const spr=(w.sp+P.bl*w.bs)*(P.ads?.4:1)*(P.cr?.8:1)*(P.mvg?1.7:1),mp=new THREE.Vector3();u.mz.getWorldPosition(mp);
+ const dir=new THREE.Vector3();for(let p=0;p<w.pel;p++){cam.getWorldDirection(dir);dir.x+=rr(-spr,spr);dir.y+=rr(-spr,spr);dir.z+=rr(-spr,spr);dir.normalize();let best=null,bt=80;
+  for(const z of zs){if(z.dead)continue;const zy=z.ug?-10:0,vx=z.x-cam.position.x,vy=1.1*z.d.s+zy-cam.position.y,vz=z.z-cam.position.z,t=vx*dir.x+vy*dir.y+vz*dir.z;if(t<=0||t>=bt)continue;const px=vx-dir.x*t,py=vy-dir.y*t,pz=vz-dir.z*t;if(Math.hypot(px,py,pz)<.6*z.d.s){best={z,hs:cam.position.y+dir.y*t>1.55*z.d.s+zy};bt=t}}
+  let wd=60;for(let k=1;k<60;k+=2){if(hit(cam.position.x+dir.x*k,cam.position.z+dir.z*k,0,cam.position.y+dir.y*k+yo)){wd=k;break}}
+  const hz=best&&bt<wd;if(hz)dmgZ(best.z,w.dmg,best.hs,cam.position.clone().addScaledVector(dir,bt),dir.clone());if(p<4||w.pel==1)tracer(mp,cam.position.clone().addScaledVector(dir,hz?bt:wd))}
+ if(P.mag[P.wep]<=0&&P.res[P.wep]>0&&!w.sh)setTimeout(()=>{if(S.run&&P.wep==P.rw||1)reload()},350)}
+const TRM=new THREE.MeshBasicMaterial({color:0xffd890,transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}),TRG=new THREE.BoxGeometry(.016,.016,.9);let trs=[];
+function tracer(a,b){const m=new THREE.Mesh(TRG,TRM),d=b.clone().sub(a),L=d.length();m.userData={a:a.clone(),d:d.normalize(),L,t:0};m.position.copy(a);m.lookAt(b);sc.add(m);trs.push(m)}
+function snd(t){const f={pistol:()=>{nse(.05,6000,.9,null,'highpass');nse(.18,2600,.9);tn(190,.16,'sine',.9,null,45);tn(95,.22,'triangle',.5,null,40);nse(.45,700,.18)},smg:()=>{nse(.04,6500,.7,null,'highpass');nse(.1,3000,.7);tn(230,.09,'sine',.7,null,70)},rifle:()=>{nse(.05,6000,1,null,'highpass');nse(.25,2200,1);tn(150,.22,'sine',1,null,40);nse(.55,500,.25)},sg:()=>{nse(.06,5000,1,null,'highpass');nse(.5,1100,1);tn(80,.5,'sine',1,null,28);tn(55,.6,'triangle',.7,null,25);nse(.7,350,.3)},mk:()=>{nse(.06,5500,1,null,'highpass');nse(.65,1500,1);tn(70,.6,'sine',1,null,24);nse(.9,400,.3)}};if(f[t])f[t]()}
+function clk(f,d,v){tn(f,d,'triangle',v,null,f*.5);nse(.025,7000,v*.7,null,'highpass')}
+function rl(k){if(k==0){clk(1500,.05,.7);nse(.07,2500,.6,null,'bandpass')}else if(k==1){nse(.14,1100,.7,null,'bandpass');tn(320,.1,'triangle',.4,null,140)}else if(k==2){clk(900,.07,.9);nse(.06,1500,.9,null,'bandpass');tn(170,.1,'sine',.8,null,80)}else if(k==3){nse(.1,2200,.9,null,'bandpass');clk(700,.08,.8);setTimeout(()=>{nse(.07,1400,.9,null,'bandpass');clk(1100,.06,.8)},110)}else if(k==4){clk(1300,.05,.7);tn(180,.07,'sine',.6,null,100);nse(.05,2000,.6,null,'bandpass')}else if(k==5){nse(.1,1300,.8,null,'bandpass');tn(220,.08,'triangle',.5,null,110)}else{nse(.09,2300,.8,null,'bandpass');clk(800,.07,.8)}}
+function dry(){clk(1400,.04,.8)}
+function reload(){const w=W[P.wep];if(w.m||P.rl>0||P.mag[P.wep]>=w.mag||P.res[P.wep]<=0)return;P.rt=P.rl=w.rt;P.rw=P.wep;rl(0)}
+function use(k){const i=P.inv;
+ if(k=='eat'){if(i.food<1)return toast('No food');i.food--;P.food=Math.min(100,P.food+40);toast('Ate canned food')}
+ if(k=='heal'){if(i.med>0){i.med--;P.hp=Math.min(100,P.hp+55)}else if(i.bandage>0){i.bandage--;P.hp=Math.min(100,P.hp+20)}else toast('No medical supplies')}
+ if(k=='craft'){if(i.cloth<2)return toast('Need 2 cloth');i.cloth-=2;i.bandage++;toast('Crafted a bandage')}
+ if(k=='fix'){if(i.scrap<2)return toast('Need 2 scrap');i.scrap-=2;P.dur=Math.min(100,P.dur+40);toast('Axe repaired')}}
+function lootC(c){c.open=1;P.loot++;nse(.2,700,.3);let m=[];
+ if(c.first){P.own[1]=1;P.res[1]+=12;P.mag[1]=12;m.push('Pistol and ammo')}
+ else for(let n=0;n<2;n++){const r=R();if(r<.3){const g=[1,2,3,4,5].filter(x=>P.own[x]);if(g.length){const x=pk(g);P.res[x]+=[0,12,6,20,5,30][x];m.push(W[x].n+' ammo')}else{P.inv.cloth++;m.push('cloth')}}else if(r<.5){P.inv.cloth++;m.push('cloth')}else if(r<.7){P.inv.scrap++;m.push('scrap')}else if(r<.88){P.inv.food++;m.push('food')}else{P.inv.med++;m.push('medkit')}}
+ if(c.note){toast(c.note)}else toast('Found: '+m.join(', '));if(c.note)setTimeout(()=>toast('Found: '+m.join(', ')),3300);
+ if(c.fuel){sideDone=1;P.res[1]+=12;toast('Side mission done: fuel siphoned, trade ammo gained')}}
+let WD;function woodTex(){const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');g.fillStyle='#6b4423';g.fillRect(0,0,64,64);for(let i=0;i<8;i++){g.fillStyle='rgba('+(20+R()*30|0)+',10,5,.35)';g.fillRect(0,i*8,64,1+R()*2)}for(let i=0;i<40;i++){g.fillStyle='rgba(0,0,0,.12)';g.fillRect(R()*64,R()*64,R()*14,1)}return new THREE.CanvasTexture(c)}
+function crate(x,z,o={}){let t=0;while(hit(x,z,.8)&&t++<14){x+=rr(-1.5,1.5);z+=rr(-1.5,1.5)}if(hit(x,z,.8))return;
+ const g=new THREE.Group(),wm=new THREE.MeshLambertMaterial({map:WD||(WD=woodTex()),color:0xc09a70}),mt=new THREE.MeshLambertMaterial({color:0x3b3f44}),gd=new THREE.MeshLambertMaterial({color:0xc9a43a,emissive:0x4a3500});
+ const bx=(w,h,d,m,px,py,pz)=>{const q=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);q.position.set(px,py,pz);g.add(q)};
+ bx(1.1,.5,.65,wm,0,.25,0);bx(.1,.52,.69,mt,-.38,.26,0);bx(.1,.52,.69,mt,.38,.26,0);bx(1.14,.06,.69,mt,0,.03,0);bx(.14,.16,.05,gd,0,.46,.34);
+ const lid=new THREE.Group();lid.position.set(0,.5,-.325);g.add(lid);
+ const dome=(r,len,m,px)=>{const lg=new THREE.CylinderGeometry(r,r,len,12,1,false,0,Math.PI);lg.rotateZ(Math.PI/2);const q=new THREE.Mesh(lg,m);q.position.set(px,0,.325);q.scale.set(1,.55,1);lid.add(q)};
+ dome(.33,1.1,wm,0);dome(.345,.1,mt,-.38);dome(.345,.1,mt,.38);
+ g.position.set(x,0,z);g.rotation.y=rr(-.4,.4);sc.add(g);crates.push(Object.assign({m:g,lid,x,z,open:0},o))}
+/* ---------- missions ---------- */
+function near(l){return Math.hypot(P.x-LM[l].x,P.z-LM[l].z)}
+function dlg(who,text,opts){S.talk=1;document.exitPointerLock();$('dw').textContent=TR(who);$('dt').textContent=TR(text);const o=$('do');o.innerHTML='';opts.forEach(([l,f])=>{const b=document.createElement('button');b.textContent=TR(l);b.onclick=()=>{$('dlg').hidden=true;S.talk=0;f&&f();if(S.run&&!S.talk)lock()};o.appendChild(b)});$('dlg').hidden=false;speak(TR(text),who)}
+function mara(){dlg('Mara','You walked out of St. Anne’s? Nobody walks out of there. Whatever you are, you’re the first thing in weeks that hasn’t tried to eat me. What do you want?',[
+ ['Give her a medkit (costs 1)',()=>{if(P.inv.med>0){P.inv.med--;P.trust+=2}else P.trust+=1;toast('Mara trusts you');maraB()}],
+ ['Take her radio by force',()=>{P.radio=1;P.trust-=2;toast('Radio taken. Mara won’t forget.');maraB()}],
+ ['Ask about your family',()=>{P.trust+=1;maraB()}]])}
+function maraB(){setTimeout(()=>dlg('Mara','Helix Research, east of the checkpoint. They took people in trucks. If your family is alive, they’re there. Get past the soldiers first.',[['Continue',null]]),400)}
+function hale(){dlg('Dr. Hale','The helicopter is inbound. Before you board: you were Subject Zero, the first and only immune. Your blood can make the cure, but it takes all of it. Or you can burn the research and disappear with your family.',[
+ ['Give your blood. End this.',()=>ending(0)],
+ ['Burn the lab and leave with your daughter.',()=>ending(1)],
+ ['Radio Mara to carry the cure out.',()=>ending(P.trust>=1&&!P.radio?2:3)]])}
+const END=[['Ending: The Last Dawn','You give everything. The cure spreads from the lab by radio and by hand. Your daughter watches the first sunrise without a single groan in the distance.'],['Ending: Ashes','The lab burns for three days. You and your daughter walk north with the only secret left alive: you. Somewhere, the dead keep walking.'],['Ending: Together','Mara arrives with a convoy. The cure is split, copied and carried to six cities. You share the dawn with people you chose to trust.'],['Ending: Betrayal','Mara’s voice on the radio is cold. The convoy never comes, and the cure goes to the highest bidder. You were right about the world, and wrong about her.']];
+const ES=[
+{m:0,l:['You lie on the table while the last of your blood runs into the lines.','Hale’s voice is quiet. “It’s working.”','Outside, the infected stop. One by one, they simply stop.','Your daughter’s hand is in yours. She is crying, and she is alive.','The sun clears the ruined skyline. For the first time in months, nothing screams.','THE LAST DAWN']},
+{m:1,l:['The charges go off one after another. The lab folds in on itself.','You carry your daughter through the smoke, her face pressed to your shoulder.','Behind you, years of Helix research burn.','You walk north with nothing but each other, and a secret that is yours alone.','Somewhere far away, the dead keep walking.','ASHES']},
+{m:2,l:['The helicopter lifts off as the radio crackles. “Mara. It’s me.”','“I see you. Hold position.” Headlights break over the ridge.','A convoy of trucks, each painted with a hand-drawn sun.','Mara throws you a blanket. “Told you I’d come.”','The cure goes out to six cities, carried by people you chose to trust.','TOGETHER']},
+{m:3,l:['The radio hisses. “Mara? Mara, do you read me?”','“I read you,” she says. “I’m sorry. They’re paying for the cure.”','No convoy. No answer. Only static, and a helicopter that never lands.','The soldiers lower their rifles at you. Hale looks away.','You were right about the world. You were wrong about her.','BETRAYAL']},
+{m:0,l:['Hale collapses among the humming machines. “Every number,” he whispers, “was always you.”','In his console you find the master shutdown, hidden behind his own cure.','One signal, sent from the right tower, will silence every infected cell. Your hands shake as you send it.','Across the ruined city, the infected slump and fall still. Mara’s radio crackles: “Is it over?”','The doctor made the dark. You ended it.','THE ARCHITECT']}];
+END.push(['Final Chapter: The Architect','Dr. Hale engineered the outbreak to force the world to buy his cure. With his shutdown signal sent, the infected finally rest, and the city can begin to heal.']);
+let ecT=[],ecR=0;
+function endScene(i){ia();['menu','chap','set','pause','end','card','dlg'].forEach(k=>$(k).hidden=1);$('hud').hidden=1;S.run=0;S.talk=1;
+ const cv=$('ec'),g=cv.getContext('2d'),sc2=ES[i],c=$('cine'),p=$('cp');cv.style.display='block';cv.width=innerWidth;cv.height=innerHeight;c.hidden=0;$('cGo').hidden=1;p.textContent='';
+ const W2=cv.width,H2=cv.height,sk=[],em=[],m=sc2.m;for(let x=0;x<W2;x+=rr(30,70))sk.push({x,w:rr(30,70),h:rr(H2*.08,H2*.3)});for(let n=0;n<80;n++)em.push({x:rr(0,W2),y:rr(0,H2),v:rr(20,80)});
+ const T=sc2.l.length*4.2+3.5,t0=performance.now();
+ const draw=()=>{const t=(performance.now()-t0)/1000,pr=Math.min(1,t/T);
+  if(m==0){const gr=g.createLinearGradient(0,0,0,H2);gr.addColorStop(0,'rgb('+(10+pr*90|0)+','+(14+pr*100|0)+','+(30+pr*110|0)+')');gr.addColorStop(1,'rgb('+(20+pr*235|0)+','+(20+pr*150|0)+','+(25+pr*60|0)+')');g.fillStyle=gr;g.fillRect(0,0,W2,H2);g.fillStyle='rgba(255,230,160,'+(.3+pr*.7)+')';g.beginPath();g.arc(W2*.5,H2*(.95-pr*.4),60+pr*50,0,7);g.fill()}
+  else if(m==1){const f=.5+.5*Math.sin(t*9)*Math.sin(t*3.1);g.fillStyle='rgb('+(30+f*50|0)+','+(8+f*14|0)+',6)';g.fillRect(0,0,W2,H2);const gr=g.createRadialGradient(W2/2,H2,10,W2/2,H2,H2);gr.addColorStop(0,'rgba(255,140,40,'+(.5+f*.3)+')');gr.addColorStop(1,'rgba(255,60,0,0)');g.fillStyle=gr;g.fillRect(0,0,W2,H2)}
+  else if(m==2){const gr=g.createLinearGradient(0,0,0,H2);gr.addColorStop(0,'#1c2a44');gr.addColorStop(.7,'#d98a4a');gr.addColorStop(1,'#f2c27a');g.fillStyle=gr;g.fillRect(0,0,W2,H2)}
+  else{g.fillStyle='rgb('+(25+8*Math.sin(t*20)|0)+',6,8)';g.fillRect(0,0,W2,H2)}
+  g.fillStyle=m==3?'#0a0204':'#07090a';for(const b of sk)g.fillRect(b.x,H2*.8-b.h,b.w,b.h+H2);
+  if(m==1){g.fillStyle='rgba(255,170,60,.9)';for(const e of em){e.y-=e.v*.016;e.x+=Math.sin(t+e.y)*.6;if(e.y<0)e.y=H2;g.fillRect(e.x,e.y,2,2)}}
+  if(m==2){g.fillStyle='#050607';g.fillRect(0,H2*.8,W2,H2);for(let k=0;k<5;k++){const x=((t*90+k*W2/5)%(W2+300))-150,y=H2*.8;g.fillStyle='#0a0c0b';g.fillRect(x,y-46,120,40);g.fillRect(x+120,y-34,36,28);g.fillStyle='rgba(255,230,150,.9)';g.fillRect(x+156,y-26,6,6);g.fillStyle='rgba(255,230,150,.15)';g.beginPath();g.moveTo(x+160,y-23);g.lineTo(x+330,y-60);g.lineTo(x+330,y+10);g.fill()}}
+  if(m==3){for(let k=0;k<60;k++){g.fillStyle='rgba(200,200,200,'+rr(.02,.12)+')';g.fillRect(rr(0,W2),rr(0,H2),rr(20,200),rr(1,3))}g.fillStyle='rgba(255,40,30,'+(.4+.4*Math.sin(t*5))+')';g.beginPath();g.arc(W2*.82,H2*.25,8,0,7);g.fill()}
+  g.fillStyle='rgba(0,0,0,'+Math.max(0,.6-t*.5)+')';g.fillRect(0,0,W2,H2);ecR=requestAnimationFrame(draw)};
+ draw();let iv=0;
+ if(A){if(m==0)[110,165,220,330].forEach((fq,k)=>ecT.push(setTimeout(()=>tn(fq,9,'sine',.07+k*.01),k*1500)));if(m==1)iv=setInterval(()=>{nse(.08,rr(800,3000),.25,null,'highpass');if(R()<.3)nse(.3,300,.3)},140);if(m==2){tn(55,T,'sine',.1);iv=setInterval(()=>nse(.4,200,.12),500)}if(m==3)iv=setInterval(()=>nse(.12,rr(2000,6000),.18,null,'highpass'),90)}
+ const fin=()=>{cancelAnimationFrame(ecR);clearInterval(iv);ecT.forEach(clearTimeout);ecT=[];c.onclick=null;cv.style.display='none';c.hidden=1;p.style.fontSize='';p.style.color='';$('et').textContent=TR(END[i][0]);$('ex').textContent=TR(END[i][1])+(P.kills?'  '+TR('Kills')+': '+P.kills:'');$('eRetry').hidden=1;$('eEpi').hidden=i>3;$('eEpi').textContent=TR('Continue — Chapter 7 Epilogue');$('eEpi').onclick=()=>start('story',0,6+i,2);$('end').hidden=0};
+ sc2.l.forEach((ln,k)=>ecT.push(setTimeout(()=>{p.style.opacity=0;setTimeout(()=>{const last=k==sc2.l.length-1;p.textContent=TR(ln);p.style.fontSize=last?'clamp(40px,8vw,96px)':'';p.style.color=last?'#e6a23c':'';p.style.opacity=1},500)},k*4200)));
+ ecT.push(setTimeout(fin,sc2.l.length*4200+3500));c.onclick=fin}
+function ending(i){setTimeout(()=>{snap();document.exitPointerLock();SV.done=1;SV.e=SV.e||[];SV.e[i]=1;SV.ei=i;sv();endScene(i)},500)}
+function die(){S.run=0;document.exitPointerLock();$('hud').hidden=true;$('et').textContent=TR('YOU DIED');$('ex').textContent=TR('Kills')+': '+P.kills+(S.mode=='survival'?'  ·  '+TR('Reached wave')+' '+wave:'');$('eEpi').hidden=1;$('eRetry').hidden=S.mode!='story';$('end').hidden=false}
+/* ---------- run control ---------- */
+function lock(){try{$('c').requestPointerLock()}catch(e){}}
+function reset(){clearGore();Object.assign(P,{x:0,z:17,yaw:0,pitch:0,jy:0,vy:0,ey:1.7,hp:100,st:100,food:100,exh:0,wep:0,own:[1,0,0,0,0,0],mag:[0,0,0,0,0,0],res:[0,0,0,0,0,0],inv:{cloth:1,scrap:1,food:2,med:1,bandage:0},fl:1,cr:0,cd:0,rl:0,dur:100,kills:0,loot:0,l0:0,k0:0,trust:0,radio:0,ht:0,kick:0,swX:0,swY:0,adsv:0,ads:0,bl:0,rec:0,pump:0,fm:0,rt:1,mvg:0,it:{med:0,key:0},rd:0,dt:0,ws:0,mr:0,wn:0,sw:0,bob:0,sd:0,hb:0});
+ zs.forEach(z=>sc.remove(z.g));zs=[];crates.forEach(c=>sc.remove(c.m));crates=[];boss=null;wave=0;wt=3;sideDone=0;ch=0;tod=.9}
+function poi(){const mat=(c,e)=>new THREE.MeshLambertMaterial({color:c,emissive:e||0}),add=(w,h,d,c,x,y,z,e,p)=>{const q=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(c,e));q.position.set(x,y,z);(p||sc).add(q);return q};
+ const A=PT.signal;add(2,.6,2,0x333333,A.x,.3,A.z);const tw=new THREE.Mesh(new THREE.CylinderGeometry(.25,.6,26,6),mat(0x777b7e));tw.position.set(A.x,13,A.z);sc.add(tw);addOb(A.x,A.z,1.4,1.4,26);SIG=new THREE.Mesh(new THREE.SphereGeometry(.5,8,6),new THREE.MeshBasicMaterial({color:0xff2a1a}));SIG.position.set(A.x,26.4,A.z);sc.add(SIG);
+ const C=PT.convoy;[-12,0,12].forEach(dz=>{const g=new THREE.Group();add(2.6,2.6,5.2,0x4a5a3a,0,1.9,-.6,0,g);add(2.4,2,1.8,0x3a4a2e,0,1.6,2.8,0,g);add(2.2,.7,.1,0x99aabb,0,2,3.72,0x223344,g);[[-1.3,-2],[1.3,-2],[-1.3,2],[1.3,2]].forEach(([x,z])=>{const w=new THREE.Mesh(new THREE.CylinderGeometry(.55,.55,.4,10),mat(0x111111));w.rotation.z=1.57;w.position.set(x,.55,z);g.add(w)});g.position.set(C.x,0,C.z+dz);sc.add(g);addOb(C.x,C.z+dz,2.8,7,3.2)});
+ [[C.x+5,C.z+4],[90,-90],[-18,126]].forEach(([x,z])=>{add(.9,1.3,.7,0x2a2f33,x,.65,z);const an=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,3.2,6),mat(0x999999));an.position.set(x,2.9,z);sc.add(an);const lp=new THREE.Mesh(new THREE.SphereGeometry(.12,8,6),new THREE.MeshBasicMaterial({color:0xd23a22}));lp.position.set(x,2.0,z+.36);sc.add(lp);addOb(x,z,1,.8,1.3);TXS.push({x,z,on:0,lamp:lp})});
+ const U=PT.ugin;add(2.6,.3,2.6,0x222222,U.x,.15,U.z);add(2.6,.05,.2,0xe6a23c,U.x,.33,U.z-1.2);add(2.6,.05,.2,0xe6a23c,U.x,.33,U.z+1.2);add(.2,.05,2.6,0xe6a23c,U.x-1.2,.33,U.z);add(.2,.05,2.6,0xe6a23c,U.x+1.2,.33,U.z);
+ [PT.ugin,PT.ugout].forEach((q,k)=>{add(10,.05,10,0x2c2e2a,q.x,.03,q.z);if(k){add(2.6,.3,2.6,0x222222,q.x,.15,q.z);add(2.6,.05,.2,0xe6a23c,q.x,.33,q.z-1.2);add(2.6,.05,.2,0xe6a23c,q.x,.33,q.z+1.2);add(.2,.05,2.6,0xe6a23c,q.x-1.2,.33,q.z);add(.2,.05,2.6,0xe6a23c,q.x+1.2,.33,q.z)}const sx=q.x+(k?5.5:-5.5);add(5,3.2,5,0x6a6d68,sx,1.6,q.z);addOb(sx,q.z,5,5,3.2);add(.2,2,2.2,0x1e2224,sx+(k?-2.55:2.55),1,q.z);add(.3,.3,.3,0x330000,sx,3.4,q.z,0xff2010);label(k?'Helix — Surface Exit':'Helix Black Site',q.x,6,q.z)});
+ const E=PT.extract,pad=new THREE.Mesh(new THREE.CylinderGeometry(7,7,.15,24),mat(0x2a2d2f));pad.position.set(E.x,.08,E.z);sc.add(pad);add(.5,.05,4,0xdddddd,E.x-1.2,.2,E.z);add(.5,.05,4,0xdddddd,E.x+1.2,.2,E.z);add(2.4,.05,.5,0xdddddd,E.x,.2,E.z);
+ const hl=new THREE.Group();add(2.2,2,5,0x3a4a3a,0,2,0,0,hl);add(.6,.6,5,0x3a4a3a,0,2.2,-5,0,hl);ROT=add(9,.08,.4,0x222222,0,3.2,0,0,hl);hl.position.set(E.x+2,0,E.z-3);sc.add(hl);addOb(E.x+2,E.z-3,2.4,5,3);
+ const mi=(k,x,z)=>{let t=0;while(hit(x,z,.6)&&t++<20){x+=rr(-1,1);z+=rr(-1,1)}const g=new THREE.Group();if(k=='med'){add(.5,.35,.3,0xeeeeee,0,0,0,0x333333,g);add(.3,.08,.32,0xdd2222,0,0,0,0x660000,g);add(.08,.28,.32,0xdd2222,0,0,0,0x660000,g)}else{add(.35,.5,.04,0xe6a23c,0,0,0,0x664400,g);add(.12,.08,.05,0x222222,0,.12,.03,0,g)}g.position.set(x,1,z);g.visible=false;sc.add(g);IT.push({k,x,z,m:g,taken:0})};
+ const H=LM.hospital;mi('med',H.x-6,H.z-5);mi('med',H.x+6,H.z-4);mi('med',H.x-5,H.z+6);mi('key',LM.police.x+4,LM.police.z-3);
+ const TG=new THREE.Group();TG.position.y=-10;sc.add(TG);const tm=(w,h,d,c,x,y,z,e)=>add(w,h,d,c,x,y,z,e,TG);
+ tm(106,.1,9,0x3a4046,0,0,0);tm(106,.5,9,0xb8bcb8,0,4.25,0);tm(106,4.2,.5,0xcfd4d0,0,2,-4.5);tm(106,4.2,.5,0xcfd4d0,0,2,4.5);tm(.5,4.2,9,0x9aa0a0,-53,2,0);tm(.5,4.2,9,0x9aa0a0,53,2,0);
+ addOb(0,-4.5,106,.5,4.2,0,1);addOb(0,4.5,106,.5,4.2,0,1);addOb(-53,0,.5,9,4.2,0,1);addOb(53,0,.5,9,4.2,0,1);
+ tm(106,.35,.1,0x2a7a9a,0,.4,-4.2,0x0a2a3a);tm(106,.35,.1,0x2a7a9a,0,.4,4.2,0x0a2a3a);
+ const gl=new THREE.MeshLambertMaterial({color:0x66e0e8,emissive:0x0a5a6a,transparent:true,opacity:.55}),steel=mat(0x3a3f44);
+ for(let i=-4;i<=4;i++){const x=i*11,sd=i%2?1:-1;
+  tm(2.4,.08,.9,0xffffff,x+5,3.95,0,0xdcecff);
+  const cyl=(r,h,m,y)=>{const q=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,12),m);q.position.set(x,y,sd*3);TG.add(q)};cyl(.85,.3,steel,.15);cyl(.7,3,gl,1.8);cyl(.85,.3,steel,3.45);addOb(x,sd*3,1.7,1.7,4,0,1);
+  tm(2,.9,.8,0x5a6068,x+5,.45,-sd*3.4);tm(1.4,.7,.05,0x40a0ff,x+5,1.3,-sd*3.0,0x2060c0);addOb(x+5,-sd*3.4,2,.9,1.3,0,1);
+  if(i%3==0)tm(.4,.12,.4,0xff2010,x+2,4,0,0xff2010);
+  if(R()<.6)tm(rr(.8,1.8),.02,rr(.6,1.2),0x4a0c0c,x+rr(-3,3),.06,rr(-2,2))}
+ tm(.3,3,2.4,0x20c050,52.6,1.6,0,0x10a040);tm(.3,3,2.4,0x888a8a,-52.6,1.6,0,0x222222);tm(.4,.08,2.6,0xe6d020,52.4,.1,0,0x665c00);tm(.4,.08,2.6,0xe6d020,-52.4,.1,0,0x665c00)}
+function seedCrates(){const H=LM.hospital;[[-5,3],[5,3],[-5,-5],[6,-6],[0,11.5]].forEach(([a,b],i)=>crate(H.x+a,H.z+b,i==0?{first:1,note:LM.hospital[4]}:{}));
+ for(const k in LM){if(k=='hospital')continue;const L=LM[k];crate(L.x+5,L.z+5,{note:L[4]});crate(L.x-5,L.z-4,k=='gas'?{fuel:1,note:'Fuel cans. Side mission: siphon the fuel.'}:{})}
+ for(const b of bl){if(R()<.75||b.w>15)crate(b.cx+rr(-b.w/2+1.5,b.w/2-1.5),b.cz+rr(-b.d/2+1.5,b.d/2-1.5),{});if(b.w>15)crate(b.cx+rr(-6,6),b.cz+rr(-6,6),{})}for(let n=0;n<12;n++){const i=(R()*7|0)-3,j=(R()*7|0)-3;crate(i*36+pk([-11.5,11.5]),j*36+rr(-11,11),{})}}
+function setupCh(){P.own=[1,ch>0?1:0,SV.g?1:0,0,0,SV.s?1:0];P.res=[0,ch>0?24:0,SV.g?18:0,0,0,SV.s?60:0];P.mag[1]=ch>0?12:0;P.mag[2]=SV.g?6:0;P.mag[5]=SV.s?30:0;if(ch>0)P.wep=1;if(ch>=6){P.own=[1,1,1,0,0,1];P.res=[0,36,24,0,0,90];P.mag[1]=12;P.mag[2]=6;P.mag[5]=30;P.wep=5}if(ch>=10){P.own[3]=1;P.res[3]=80;P.mag[3]=20}}
+function start(mode,cont,n,rt){ia();S.mode=mode;reset();seedCrates();if(mode=='free')for(let i=0;i<22;i++){const p=rp(30,110);p&&spawnZ(pickT(),p[0],p[1])}
+ if(mode=='story'){ch=cont?Math.min(SV.u-1,5):(n||0);P.trust=SV.t;P.radio=SV.r;setupCh();if(rt==2)restoreSnap()}
+ if(mode=='survival'){P.own=[1,1,1,0,0,SV.s?1:0];P.res=[0,36,18,0,0,SV.s?60:0];P.mag[5]=SV.s?30:0;P.mag[1]=12;P.mag[2]=6;P.wep=1;P.inv.med=2}spIn(mode=='survival'?0:14,140);
+ for(const k of['menu','set','pause','end','chap'])$(k).hidden=1;
+ if(mode=='story'){SV.p=1;sv();if(ch==0&&!cont&&!n&&!rt)cine(['The city fell.','You wake up in St. Anne’s. The machines are silent. The corridor is not.','Somewhere out there, your family is waiting. Or what is left of them.','Find them. Find out what you are.'],chCard);else chCard(rt==2)}else go()}
+function go(){ia();$('cine').hidden=1;$('cGo').hidden=1;$('card').hidden=1;$('hud').hidden=0;S.run=1;S.talk=0;wpn(P.wep);setTimeout(()=>{if(S.run&&!S.talk&&!document.pointerLockElement)$('pause').hidden=0},700);if(S.mode=='story')note(CH[ch].e);toast(S.mode=='story'?'Chapter '+cnum(CH[ch])+': '+CH[ch].o[0].t:S.mode=='survival'?'Survive the waves':'Free roam: the city is yours');lock()}
+function cine(lines,done){$('cine').hidden=0;$('cGo').hidden=1;S.talk=1;let i=0;const p=$('cp');$('cGo').onclick=done;const step=()=>{if($('cine').hidden)return;if(i<lines.length){p.style.opacity=0;setTimeout(()=>{p.textContent=TR(lines[i++]);p.style.opacity=1},500);setTimeout(step,3600)}else{$('cGo').hidden=0}};p.textContent='';step();const sk=()=>{i=lines.length;$('cGo').hidden=0};$('cine').onclick=e=>{if(e.target.id!='cGo')sk()}}
+function wpn(i){P.wep=i;wg.forEach((g,k)=>g.visible=k==i);P.rl=0}
+function toMenu(){S.run=0;S.talk=0;document.exitPointerLock();for(const k of['pause','end','cine','dlg'])$(k).hidden=1;$('hud').hidden=1;$('menu').hidden=0;let ok=0;ok=SV.p;$('bCont').style.display=ok?'block':'none';zs.forEach(z=>sc.remove(z.g));zs=[]}
+/* ---------- update ---------- */
+function update(dt){
+ P.cd-=dt;P.kick=Math.max(0,P.kick-dt*6);P.sw=Math.max(0,P.sw-dt*4);
+ if(P.rl>0){const w=W[P.rw],pr=1-P.rl/P.rt;P.rl-=dt;const q=1-Math.max(0,P.rl)/P.rt;
+  if(!w.sh){if(pr<.3&&q>=.3)rl(1);if(pr<.65&&q>=.65)rl(2);}
+  if(P.rl<=0){const i=P.rw;if(w.sh){if(P.res[i]>0&&P.mag[i]<w.mag){P.mag[i]++;P.res[i]--;rl(4)}if(P.mag[i]<w.mag&&P.res[i]>0)P.rl=P.rt=w.rt;else{P.rl=0;rl(3)}}else{const n=Math.min(w.mag-P.mag[i],P.res[i]);P.mag[i]+=n;P.res[i]-=n;rl(3)}}}
+ P.bl=Math.max(0,P.bl-dt*(W[P.wep].bd||2));{const q=Math.min(P.rec,P.rec*dt*3+.0002);P.rec-=q;P.pitch-=q*.6}
+ if(P.fire&&W[P.wep].auto||P.fire==2){fire();if(!W[P.wep].auto)P.fire=0}
+ P.cr=!!(keys.ControlLeft||keys.KeyZ);const f=(keys.KeyW?1:0)-(keys.KeyS?1:0),s=(keys.KeyD?1:0)-(keys.KeyA?1:0),moving=f||s;
+ if(P.exh&&P.st>25)P.exh=0;const spr=keys.ShiftLeft&&f>0&&!P.cr&&!P.exh&&P.st>0;if(spr){P.st-=18*dt;if(P.st<=0)P.exh=1}else P.st=Math.min(100,P.st+(moving?8:14)*dt);
+ const sp=P.cr?2:spr?7:4,l=Math.hypot(f,s)||1,sn=Math.sin(P.yaw),cs=Math.cos(P.yaw);
+ mv(P,((-sn*f)+(cs*s))/l*sp*dt,((-cs*f)+(-sn*s))/l*sp*dt,.4);
+ if(keys.Space&&P.jy==0&&P.st>10){P.vy=4.6;P.st-=10}P.jy+=P.vy*dt;P.vy-=13*dt;if(P.jy<=0){P.jy=0;P.vy=0}
+ if(moving&&P.jy==0){P.bob+=sp*dt*1.6;P.sd+=sp*dt;if(P.sd>2.4){P.sd=0;const gr=Math.abs(P.x)>126||Math.abs(P.z)>126,bl=inBlk(P.x,P.z);nse(.08,gr?500:bl?1300:2000,gr?.3:.2);noise(P.x,P.z,P.cr?3:spr?24:10)}}
+ P.food=Math.max(0,P.food-dt*.12);if(P.food<=0)P.hp-=dt*1.5;else if(P.food>50&&P.hp<100&&P.hp>0)P.hp=Math.min(100,P.hp+dt*.3);if(P.hp<=0)return die();
+ if(P.hp<30){P.hb-=dt;if(P.hb<0){P.hb=.8;tn(55,.15,'sine',.5);setTimeout(()=>tn(50,.15,'sine',.4),200)}}
+ P.ey+=((P.cr?1.1:1.7)-P.ey)*Math.min(1,dt*10);
+ cam.position.set(P.x,P.ey+P.jy+Math.sin(P.bob)*.04+(shake>0?rr(-.03,.03)*shake*4:0)+(UG?-10:0),P.z);cam.rotation.set(P.pitch,P.yaw,0);shake=Math.max(0,shake-dt);
+ const g=wg[P.wep];if(g){const u=g.userData,w=W[P.wep],T2=clock.elapsedTime;P.mvg=moving?1:0;const mf=moving&&P.jy==0?1:0,sk=spr?1.7:1;
+  P.adsv+=((P.ads&&!w.m&&P.rl<=0&&!spr?1:0)-P.adsv)*Math.min(1,dt*12);P.swX-=P.swX*Math.min(1,dt*9);P.swY-=P.swY*Math.min(1,dt*9);P.pump=Math.max(0,P.pump-dt*1.5);P.fm=Math.max(0,P.fm-dt);
+  const bx2=Math.cos(P.bob)*.014*mf*sk*(1-P.adsv*.8),by2=Math.abs(Math.sin(P.bob))*.018*mf*sk*(1-P.adsv*.8),id=Math.sin(T2*1.4)*.0025;
+  let px=u.p0.x*(1-P.adsv)+bx2+P.swX*.6,py=u.p0.y+(-.16-u.p0.y)*P.adsv-by2+id+P.swY*.5,pz=u.p0.z+P.kick*(u.k||.05)*(1-P.adsv*.4),rx=P.kick*(u.rot||.08)+P.swY*1.4,ry=P.swX*1.6,rz=-bx2*2;
+  if(w.m){rx=-P.sw*1.4;rz=-P.sw*1.2-bx2*2;ry=0}else if(spr){rx+=.2;ry-=.4;py-=.03;px+=.02}
+  if(P.rl>0&&!w.m){const q=1-P.rl/P.rt;if(w.sh){rx-=.3+Math.sin(q*6.28)*.08;rz+=.3;py-=.03}else{const ph=q<.2?q/.2:q>.8?(1-q)/.2:1;rx+=.3*ph;rz+=.45*ph;px-=.04*ph;py-=.05*ph}}
+  if(u.mag){let m=0;if(P.rl>0&&!w.sh){const q=1-P.rl/P.rt;m=q<.3?q/.3:q<.55?1:q<.7?(.7-q)/.15:0}u.mag.position.y=-.15*m;u.mag.position.z=.02*m}
+  if(u.sl)u.sl.position.z=P.mag[P.wep]<=0&&P.rl<=0?.045:P.kick*.05;
+  if(u.pump){const q=P.pump;u.pump.position.z=q>0&&q<.8?Math.sin(q/.8*Math.PI)*.1:0}
+  g.position.set(px,py,pz);g.rotation.set(rx,ry,rz);
+  u.fl.visible=P.fm>0;if(P.fm>0){const sz=rr(.7,1.4);u.fl.scale.set(sz,sz,sz);u.fl.rotation.z=rr(0,3)}
+  const tf=72-10*P.adsv;if(Math.abs(cam.fov-tf)>.05){cam.fov=tf;cam.updateProjectionMatrix()}}
+ for(let i=trs.length-1;i>=0;i--){const m=trs[i],q=m.userData;q.t+=dt*320;if(q.t>=q.L){sc.remove(m);trs.splice(i,1)}else m.position.copy(q.a).addScaledVector(q.d,q.t)}
+ for(const i of IT)if(!i.taken&&i.m.visible){i.m.rotation.y+=dt*1.5;i.m.position.y=1+Math.sin(clock.elapsedTime*2)*.08}
+ gUp(dt);if(ROT)ROT.rotation.y+=dt*14;if(SIG)SIG.visible=(clock.elapsedTime%1.2)<.6;
+ spot.visible=!!P.fl;
+ // time, weather
+ tod+=dt/200;const k=(Math.sin(tod*6.283)+1)/2,col=new THREE.Color(0x05070a).lerp(new THREE.Color(0x5a625f),k*.75);
+ wx.t-=dt;if(wx.t<0){wx.t=rr(40,80);const r=R();wx.f=r<.3?.012:r<.6?.022:.042;wx.r=r>.35?1:0}
+ const fd=sc.fog.density;sc.fog.density+=(wx.f*(1.3-k*.5)-fd)*dt*.3;if(UG)col.multiplyScalar(.1);sc.fog.color.copy(col);sc.background.copy(col);
+ fx=Math.max(0,fx-dt*3);hemi.intensity=(.12+.5*k+fx*3)*(inside?.35:1);sun.intensity=(.05+.7*k)*(inside?0:1);
+ thT-=dt;if(S.rain&&wx.r&&thT<0){thT=rr(15,40);fx=1;setTimeout(()=>nse(3,160,.8),rr(300,1800))}
+ inside=UG||!!inB(P.x,P.z);lamp.intensity=inside?.9:0;lamp.position.set(P.x,3.2+(UG?-10:0),P.z);rain.visible=!!(S.rain&&wx.r)&&!inside;rain.position.set(P.x,0,P.z);if(rain.visible){const a=rain.geometry.attributes.position;for(let i=0;i<a.count;i+=2){let y=a.getY(i)-32*dt;if(y<0)y+=30;a.setY(i,y);a.setY(i+1,y+.6)}a.needsUpdate=true}
+ scT-=dt;if(scT<0){scT=rr(20,40);const a=rr(0,6.28);tn(rr(500,700),1.6,'sine',.05,p3(P.x+Math.cos(a)*90,P.z+Math.sin(a)*90),rr(800,1100))}
+ listen();
+ // zombies & spawning
+ for(const z of zs)zUp(z,dt);zs=zs.filter(z=>!z.gone);
+ if(S.mode=='survival'){const alive=zs.filter(z=>!z.dead).length;if(alive==0){wt-=dt;if(wt<=0){wave++;const n=4+wave*3;for(let i=0;i<n;i++){const p=rp(25,55);p&&spawnZ(pickT(),p[0],p[1])}toast('Wave '+wave);wt=7;for(let i=0;i<3;i++){const p=rp(5,14);p&&crate(p[0],p[1])}}else if(wt<6.5&&wave>0)toast('Wave '+wave+' cleared. Supply crates dropped nearby.')}}
+ else{spT-=dt;const cap=S.mode=='free'?24:20;if(spT<0&&!UG&&zs.filter(z=>!z.dead).length<cap){spT=3;if(R()<.4)spIn(1,90);else{const p=rp(45,85);p&&spawnZ(pickT(),p[0],p[1])}}}
+ for(const z of zs)if(!z.dead&&Math.hypot(z.x-P.x,z.z-P.z)>130&&S.mode!='survival'){z.dead=11;}
+ objUp(dt);setBeacon();mkUp();
+ // prompt
+ for(const c of crates)if(c.open&&c.lid.rotation.x>-1.9)c.lid.rotation.x-=dt*4;
+ let pr='';P.tc=null;P.ti=ia2();if(P.ti)pr=P.ti.t;else if(!UG)for(const c of crates)if(!c.open&&Math.hypot(c.x-P.x,c.z-P.z)<2.6){pr='[E] Search';P.tc=c;break}$('prompt').textContent=TR(pr);
+ // hud
+ $('bh').style.width=P.hp+'%';$('bs').style.width=P.st+'%';$('bf').style.width=P.food+'%';$('dmg').style.opacity=Math.max(0,+$('dmg').style.opacity-dt*1.5)+(P.hp<30?.0:0);
+ const w=W[P.wep];$('wn').textContent=TR(w.n)+(w.m?' · '+TR('durability')+' '+(P.dur|0)+'%':'');$('am').textContent=w.m?'':(P.rl>0?TR('Reloading'):P.mag[P.wep]+' / '+P.res[P.wep]);
+ const I=P.inv;$('res').textContent=TR('Food')+' '+I.food+' · '+TR('Medkits')+' '+I.med+' · '+TR('Bandages')+' '+I.bandage+' · '+TR('Cloth')+' '+I.cloth+' · '+TR('Scrap')+' '+I.scrap;
+ $('obj').innerHTML=S.mode=='story'?trk():S.mode=='survival'?'<b>'+TR('Wave')+' '+wave+'</b><small>'+TR('Infected left')+' '+zs.filter(z=>!z.dead).length+'</small>':'<b>'+TR('Free roam')+'</b><small>'+TR('Kills')+' '+P.kills+'</small>';
+ $('clock').textContent=TR(k<.25?'Night':k<.6?'Dusk':'Day');
+ if(S.inv)$('inv').innerHTML='<b>'+TR('Inventory')+'</b><br>'+W.map((x,i)=>P.own[i]?TR(x.n)+(x.m?' ('+TR('durability')+' '+(P.dur|0)+'%)':' — '+P.mag[i]+' '+TR('loaded')+', '+P.res[i]+' '+TR('spare')):'').filter(Boolean).join('<br>')+'<br>'+TR('Food')+' '+I.food+' · '+TR('Medkits')+' '+I.med+' · '+TR('Bandages')+' '+I.bandage+' · '+TR('Cloth')+' '+I.cloth+' · '+TR('Scrap')+' '+I.scrap+'<br>'+TR('C craft bandage (2 cloth) · V repair axe (2 scrap)');
+ map($('mm'),55,P.x,P.z);if(S.map)map($('bm'),160,0,0,1)}
+function map(cv,range,cx,cz,full){const g=cv.getContext('2d'),w=cv.width,sc2=w/(2*range),X=x=>(x-cx)*sc2+w/2,Y=z=>(z-cz)*sc2+w/2;g.clearRect(0,0,w,w);g.fillStyle='rgba(10,12,11,.7)';g.fillRect(0,0,w,w);g.fillStyle='#4a4d49';
+ for(const o of OB)if(o.b&&Math.abs(o.x1-cx)<range+30&&Math.abs(o.z1-cz)<range+30)g.fillRect(X(o.x1),Y(o.z1),(o.x2-o.x1)*sc2,(o.z2-o.z1)*sc2);
+ if(full){g.font='11px Barlow Condensed';g.fillStyle='#e6a23c';for(const k in LM)g.fillText(LM[k][2],X(LM[k].x)-30,Y(LM[k].z)-14)}
+ g.fillStyle='#d23a22';for(const z of zs)if(!z.dead&&(Math.hypot(z.x-P.x,z.z-P.z)<35||z.al>0)){g.beginPath();g.arc(X(z.x),Y(z.z),2.2,0,7);g.fill()}
+ const L=S.mode=='story'?tgt():null;if(L){let x=X(L.x),y=Y(L.z);x=cl(x,8,w-8);y=cl(y,8,w-8);g.fillStyle='#e6a23c';g.save();g.translate(x,y);g.rotate(.785);g.fillRect(-5,-5,10,10);g.restore()}
+ g.strokeStyle='#fff';g.fillStyle='#fff';const px=X(P.x),py=Y(P.z);g.beginPath();g.arc(px,py,3,0,7);g.fill();g.beginPath();g.moveTo(px,py);g.lineTo(px-Math.sin(P.yaw)*14,py-Math.cos(P.yaw)*14);g.stroke()}
+/* ---------- input / ui ---------- */
+addEventListener('keydown',e=>{keys[e.code]=1;if(e.code=='Tab')e.preventDefault();if(!S.run||S.talk)return;
+ const c=e.code;if(c=='KeyE'&&(P.tc||P.ti))interact();else if(c=='KeyR')reload();else if(c=='KeyF')P.fl=!P.fl;else if(c=='KeyQ')use('eat');else if(c=='KeyH')use('heal');else if(c=='KeyC')use('craft');else if(c=='KeyV')use('fix');
+ else if(c=='Tab'){S.inv=!S.inv;$('inv').hidden=!S.inv}else if(c=='KeyM'){S.map=!S.map;$('big').hidden=!S.map}else if(/^Digit[1-6]$/.test(c)){const i=+c[5]-1;if(P.own[i])wpn(i);else toast('You don’t have that weapon yet')}});
+addEventListener('keyup',e=>keys[e.code]=0);
+addEventListener('mousemove',e=>{if(S.run&&document.pointerLockElement){P.yaw-=e.movementX*.0022*S.sens;P.pitch=cl(P.pitch-e.movementY*.0022*S.sens,-1.45,1.45);P.swX=cl(P.swX-e.movementX*.0007,-.05,.05);P.swY=cl(P.swY+e.movementY*.0006,-.04,.04)}});
+addEventListener('mousedown',e=>{if(S.run&&document.pointerLockElement){if(e.button==0)P.fire=2;if(e.button==2)P.ads=1}});addEventListener('mouseup',e=>{if(e.button==0)P.fire=0;if(e.button==2)P.ads=0});addEventListener('contextmenu',e=>e.preventDefault());
+addEventListener('wheel',e=>{if(!S.run||!document.pointerLockElement)return;let i=P.wep;do{i=(i+(e.deltaY>0?1:5))%6}while(!P.own[i]);wpn(i)});
+document.addEventListener('pointerlockchange',()=>{if(document.pointerLockElement){$('pause').hidden=1}else if(S.run&&!S.talk)$('pause').hidden=0});
+addEventListener('resize',()=>{ren.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()});
+const B=(i,f)=>$(i).onclick=f;
+B('bNew',()=>{SV={u:1,s:0,g:0,t:0,r:0,p:1};sv();start('story')});B('eRetry',()=>start('story',0,ch,1));B('bStory',()=>start('story'));B('bCont',()=>start('story',1));B('bSurv',()=>start('survival'));B('bFree',()=>start('free'));
+B('bSet',()=>{$('menu').hidden=1;$('set').hidden=0});B('sBack',()=>{$('set').hidden=1;$('menu').hidden=0});
+B('bQuit',()=>{$('menu').hidden=1;$('et').textContent=TR('Signal lost');$('ex').textContent=TR('Your progress is saved. You can close this tab.');$('end').hidden=0;try{window.close()}catch(e){}});
+B('pRes',()=>lock());B('pMenu',toMenu);B('eMenu',toMenu);
+const RW=['','','SMG','','','Shotgun'];
+function buildChap(){const c=$('cl');c.innerHTML='';CH.forEach((x,i)=>{const lk=i<6?i>=SV.u:i<10?!(SV.e&&SV.e[i-6]):!((SV.m||0)>=i-9),b=document.createElement('button');b.disabled=lk;b.style.opacity=lk?.4:1;b.innerHTML='<b>'+(lk?'🔒 ':'')+(LANG=='zh'?(i<6?'第'+(i+1)+'章':i<10?'第七章 · 尾声':'第'+(i-2)+'章'):(i<6?'Chapter '+(i+1):i<10?'Chapter 7 · Epilogue':'Chapter '+(i-2)))+': '+TR(x.e)+'</b><br><span style="font-weight:500;font-size:18px;color:#a9a89c">'+x.o.map(o=>TR(o.t)).join(' → ')+(RW[i]?'<br>'+TR('Reward')+': '+TR(RW[i])+' '+TR('unlocked'):'')+'</span>';b.onclick=()=>start('story',0,i);c.appendChild(b)});const h=document.createElement('div');h.className='sub';h.style.gridColumn='1/-1';h.style.marginTop='14px';h.textContent=TR('Endings (spoilers)');c.appendChild(h);END.forEach((x,i)=>{const b=document.createElement('button');b.textContent='▶ '+TR(x[0]).replace(/^(Ending: |结局：)/,'');b.onclick=()=>endScene(i);c.appendChild(b)})}
+B('bChap',()=>{buildChap();$('menu').hidden=1;$('chap').hidden=0});B('cBack',()=>{$('chap').hidden=1;$('menu').hidden=0});
+$('sSens').oninput=e=>S.sens=+e.target.value;$('sVol').oninput=e=>{S.vol=+e.target.value;if(master)master.gain.value=S.vol*1.4};$('sRain').onchange=e=>S.rain=e.target.checked;$('sGore').onchange=e=>S.ngore=!e.target.checked;
+try{if(matchMedia('(pointer:coarse)').matches||/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)){$('desk').hidden=0;$('menu').style.display='none'}}catch(e){}
+addEventListener('mousedown',()=>ia());addEventListener('keydown',()=>ia());
+const tgl=()=>{LANG=LANG=='zh'?'en':'zh';applyLang()};B('bLang',tgl);B('sLang',tgl);
+world();poi();buildChap();toMenu();applyLang();let ma=0;
+(function loop(){requestAnimationFrame(loop);const dt=Math.min(clock.getDelta(),.05);
+ if(S.run&&!S.talk&&document.pointerLockElement)update(dt);else if(!S.run){ma+=dt*.05;cam.position.set(Math.cos(ma)*60,30,Math.sin(ma)*60);cam.rotation.set(-.2,-ma-Math.PI/2+.3,0);const k=.15;sc.background.setRGB(.03,.04,.05);sc.fog.density=.016;hemi.intensity=.3;rain.visible=true;rain.position.set(cam.position.x,0,cam.position.z);const a=rain.geometry.attributes.position;for(let i=0;i<a.count;i+=2){let y=a.getY(i)-32*dt;if(y<0)y+=30;a.setY(i,y);a.setY(i+1,y+.6)}a.needsUpdate=true;spot.visible=false;lamp.intensity=0;wg.forEach(g=>g.visible=false);beacon.visible=false}
+ ren.render(sc,cam)})();
+})();
+</script></body></html>
